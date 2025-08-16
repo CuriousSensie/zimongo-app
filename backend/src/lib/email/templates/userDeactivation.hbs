@@ -1,0 +1,76 @@
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>User Account Status</title>
+  </head>
+  <body
+    style="font-family: Arial, sans-serif, Helvetica; background-color: #f7f7f7; padding: 40px 0; margin: 0;"
+  >
+    <table
+      align="center"
+      width="600"
+      cellpadding="0"
+      cellspacing="0"
+      style="background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05);"
+    >
+      <tr>
+        <td
+          style="background-color: #1C2526; padding: 20px; color: #ffffff; text-align: center;"
+        >
+          <h2 style="margin: 0;">{{#if isDeactivated}}User Deactivation{{else}}User Activation{{/if}}</h2>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding: 30px; color: #333333;">
+          <p style="font-size: 16px;">Hi {{userName}},</p>
+          <p style="font-size: 16px;">
+            {{#if isDeactivated}}We regret to inform you that your account has been deactivated. If this was unexpected, we're here to help.{{else}}We are pleased to inform you that your account has been activated.
+            Click the button below to log in to your dashboard:{{/if}}
+        </p>
+        {{#if isDeactivated}}
+            {{#if deactivationReason}}
+                <table
+                    width="100%"
+                    cellpadding="0"
+                    cellspacing="0"
+                    style="padding: 8px 0px; border-radius: 6px; ">
+                    <tr>
+                    <td style="font-size: 16px;"><strong>Reason for Deactivation:</strong>
+                        {{deactivationReason}}</td>
+                    </tr>
+                </table>
+            {{/if}}
+        {{else}}
+            <p style="text-align: center; margin: 30px 0;">
+              <a
+                href="{{loginLink}}"
+                style="background-color: #1C2526; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-size: 16px;"
+              >
+                Go to Dashboard
+              </a>
+            </p>
+        {{/if}}
+          {{#if isDeactivated}}
+            <p style="font-size: 16px;">
+              If you believe this decision was made in error or if you would like more details, please reach out your company admin or contact us at
+              <a href="mailto:support@zimongo.com">support@zimongo.com</a>. </p>
+            {{else}}
+            <p style="font-size: 16px;">
+              If you have any questions or need assistance, please feel free to reach out to company admin or contact us at
+              <a href="mailto:support@zimongo.com">support@zimongo.com</a>. </p>
+            </p>
+            {{/if}}
+          <p style="font-size: 16px; margin-top: 30px;">Kind regards,<br />
+          The Zimongo Team</p>
+        </td>
+      </tr>
+      <tr>
+        <td
+          style="background-color: #f0f0f0; padding: 15px; text-align: center; font-size: 12px; color: #999999;"
+        >
+          © {{currentYear}} Zimongo. All rights reserved.
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
