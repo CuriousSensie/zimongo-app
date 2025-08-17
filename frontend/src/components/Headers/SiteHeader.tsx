@@ -1,10 +1,9 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import Image from "next/image";
+import React from "react";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
 import useUser from "@/hooks/useUser";
-import UserDropdown from "../UserDropdown/UserDropdown";
+import FullTextLogo from "../Logos/FullTextLogo";
+import SiteDropdown from "../HeaderDropdown/SiteDropdown";
 
 const SiteHeader = ({ className }: { className?: string }) => {
   const user = useUser();
@@ -16,8 +15,7 @@ const SiteHeader = ({ className }: { className?: string }) => {
         id="header"
         className="flex h-[8vh] items-center justify-between border-b border-neutral-500 px-4 py-2 sm:px-10 bg-zimongo-header-base"
       >
-        <div className=" text-zimongo-primary text-2xl p-3">ZIMONGO</div>
-        {}
+        <FullTextLogo />
         <div className="flex flex-row ">
           <div className="hidden md:flex md:flex-row justify-between gap-3 items-center p-3  md:visible mr-10 lg:mr-20">
             <Link href="/browse" className="hover:underline">
@@ -31,7 +29,7 @@ const SiteHeader = ({ className }: { className?: string }) => {
             </Link>
           </div>
 
-          <UserDropdown />
+          <SiteDropdown />
         </div>
       </header>
     </div>

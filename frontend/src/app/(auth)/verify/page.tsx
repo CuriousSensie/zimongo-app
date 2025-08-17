@@ -8,6 +8,7 @@ import { toast } from "react-toastify";
 import { FiMail } from "react-icons/fi";
 import axios from "axios";
 import { getSession } from "next-auth/react";
+import FullTextLogo from "@/components/Logos/FullTextLogo";
 
 const VerifyOTP = () => {
   const [otp, setOtp] = useState("");
@@ -100,11 +101,9 @@ const VerifyOTP = () => {
         id="header"
         className="flex h-[8vh] items-center justify-between border-b border-neutral-500 px-4 py-2 sm:px-10 bg-zimongo-header-base"
       >
-        <div className="text-white bg-[#FF872C] p-3 rounded-xl">
-          ZIMONGO
-        </div>
+        <FullTextLogo />
       </header>
-      <div className="m-auto w-full max-w-md rounded-lg border border-neutral-200 bg-white shadow-lg">
+      <div className="m-auto w-full max-w-md rounded-lg bg-zimongo-bg shadow-lg">
         <div className="p-6 sm:p-8">
           <div className="mb-8 text-center">
             <div className="bg-blue-50 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">

@@ -9,7 +9,7 @@ import { extractSubdomain } from "@/utils/subdomain";
 import Image from "next/image";
 import Avatar from "../../../public/avatar.png";
 
-const DropdownUser = () => {
+const SiteDropdown = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const host = window.location.host;
 
@@ -160,4 +160,4 @@ const DropdownUser = () => {
   );
 };
 
-export default DropdownUser;
+export default SiteDropdown;

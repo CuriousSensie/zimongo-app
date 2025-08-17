@@ -13,6 +13,7 @@ import { ErrorLabel } from "@/components/ErrorLabel/ErrorLabel";
 import Image from "next/image";
 import { HiLockClosed, HiOutlineMail } from "react-icons/hi";
 import { FaCircleExclamation, FaCircleInfo } from "react-icons/fa6";
+import FullTextLogo from "@/components/Logos/FullTextLogo";
 
 const SignIn: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -147,12 +148,10 @@ const SignIn: React.FC = () => {
         id="header"
         className="flex h-[8vh] items-center justify-between border-b border-neutral-500 px-4 py-2 sm:px-10 bg-zimongo-header-base"
       >
-        <div className=" text-white bg-zimongo-primary p-3 rounded-xl">
-          ZIMONGO
-        </div>
+        <FullTextLogo />
       </header>
 
-      <div className="flex flex-1 flex-col items-center justify-center">
+      <div className="flex flex-1 flex-col items-center justify-center bg-zimongo-bg">
         <h1 className="mt-4 flex gap-2 items-center px-4 py-2 text-center text-2xl font-bold sm:mb-3 ">
           Welcome to <span className="text-4xl text-zimongo-primary">Zimongo</span>
         </h1>

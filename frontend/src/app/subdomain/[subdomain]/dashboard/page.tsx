@@ -1,8 +1,11 @@
+import UserLayout from '@/components/layouts/UserLayout'
 import React from 'react'
 
 const UserDashboard = () => {
   return (
-    <div></div>
+    <UserLayout >
+      <div></div>
+    </UserLayout>
   )
 }
 

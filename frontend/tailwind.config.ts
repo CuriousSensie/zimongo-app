@@ -77,9 +77,9 @@ const config: Config = {
         success: "#219653",
         danger: "#D34053",
         warning: "#FFA70B",
-        "zimongo-bg": "#FFF9F4",
-        "zimongo-primary": "#FF872C",
-        "zimongo-header-base": "#FFFBF8",
+        "zimongo-bg": "#f1f5f9",
+        "zimongo-primary": "#374151",
+        "zimongo-header-base": "#FFFFFF",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {
