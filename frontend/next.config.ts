@@ -20,6 +20,8 @@ const nextConfig: NextConfig = {
         'https://images.pexels.com',
         'https://api.dicebear.com',
         'https://localhost:3000', // REMOVE FOR PROD
+        'https://easyreads.s3.eu-north-1.amazonaws.com'
+        
       ].map((item) => {
         const url = new URL(item);
         return {

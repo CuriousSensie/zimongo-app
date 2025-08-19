@@ -11,7 +11,11 @@ export interface IUser extends Document {
   name: string;
   resetToken?: string;
   emailVerifyToken?: string;
-  picture?: string;
+  picture?: {
+    type: string;
+    path: string;
+    originalName: string;
+  };
   isAdmin: boolean;
   isBlocked: boolean;
   online: boolean;
@@ -39,7 +43,11 @@ const userSchema = new Schema<IUser>(
     resetToken: { type: String },
     emailVerifyToken: { type: String },
     online: { type: Boolean, default: false },
-    picture: { type: String },
+    picture: {
+      type: { type: String },
+      path: { type: String },
+      originalName: { type: String },
+    },
     isAdmin: { type: Boolean, default: false },
     isBlocked: { type: Boolean, default: false },
     isEmailVerified: { type: Boolean, default: false },
@@ -70,7 +78,6 @@ userSchema.methods.comparePassword = async function (
 ): Promise<boolean> {
   return await bcrypt.compare(password, this.password);
 };
-
 
 userSchema.methods.notify = async function (
   title: string,

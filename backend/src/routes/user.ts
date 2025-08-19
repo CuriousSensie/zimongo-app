@@ -11,6 +11,7 @@ import { generateOtp } from "../lib/otp";
 import { loginLimiter } from "../middleware/rateLimiter";
 import { CustomRequest } from "../types/request";
 import { sendGridGuide } from "../lib/email/SendGridGuide";
+import { extractSubdomain } from "../utils/subdomain";
 
 const signUpTokenType = {
   employee: "employee",
@@ -192,6 +193,15 @@ userRouter.post(
           .json({ status: 403, message: "Verify your email first." });
       }
 
+      console.log(req.headers.host);
+      // const subdomain = extractSubdomain(window.location.hostname!);
+      // console.log(subdomain);
+      // if (subdomain && user.profileSlug&& subdomain !== user.profileSlug) {
+      //   return res
+      //     .status(403)
+      //     .json({ status: 403, message: `Invalid subdomain detected. Try going to ${user.profileSlug}.${req.headers.host}/signin.` });
+      // }
+
       // Compare the provided password with the stored hashed password
       const isMatch = await user.comparePassword(password);
       if (!isMatch) {
@@ -239,6 +249,7 @@ userRouter.post(
             isAdmin: user.isAdmin,
             isEmailVerified: user.isEmailVerified,
             profileSlug: user.profileSlug,
+            picture: user.picture,
           },
         });
       }
@@ -253,6 +264,7 @@ userRouter.post(
           isAdmin: user.isAdmin,
           isEmailVerified: user.isEmailVerified,
           profileSlug: user.profileSlug,
+          picture: user.picture,
         },
       });
     } catch (error) {

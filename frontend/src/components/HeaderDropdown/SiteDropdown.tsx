@@ -8,6 +8,7 @@ import { ArrowLeftFromLine, ChevronDown, User } from "lucide-react";
 import { extractSubdomain } from "@/utils/subdomain";
 import Image from "next/image";
 import Avatar from "../../../public/avatar.png";
+import { NEXT_PUBLIC_S3_BASE_URL } from "@/constant/env";
 
 const SiteDropdown = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -68,11 +69,22 @@ const SiteDropdown = () => {
           </span>
         </span>
 
-        <div className="h-10 w-10 overflow-hidden rounded-full border border-stroke shadow-lg">
+        <div className="h-[5vh] w-[5vh] overflow-hidden rounded-full border border-stroke shadow-lg">
           <Image
-            src={Avatar}
+            src={
+              user?.me?.picture.path
+                ? `${NEXT_PUBLIC_S3_BASE_URL}/${user?.me?.picture?.path}`
+                : Avatar
+            }
             alt="Avatar"
-            className="w-[6vh] h-[6vh] rounded-full object-fit items-center"
+            height={40}
+            width={40}
+            style={{
+              objectFit: "cover",
+              width: "100%",
+              height: "100%",
+            }}
+            className="w-[6vh] h-[6vh] rounded-full items-center"
           />
         </div>
       </Link>
@@ -128,32 +140,33 @@ const SiteDropdown = () => {
             </Link>
           </li>
         </ul>
-        { user?.me &&
+        {user?.me && (
           <button
-          onClick={() => {
-            // Check if current URL has a subdomain
+            onClick={() => {
+              // Check if current URL has a subdomain
 
-            const hostname = window.location.hostname;
-            const subdomain = extractSubdomain(hostname);
+              const hostname = window.location.hostname;
+              const subdomain = extractSubdomain(hostname);
 
-            let callbackUrl = "/signin";
+              let callbackUrl = "/signin";
 
-            signOut({ callbackUrl }).then(() => {
-              window.location.href = callbackUrl;
-            });
+              signOut({ callbackUrl }).then(() => {
+                window.location.href = callbackUrl;
+              });
 
-            toast({
-              title: "You have been Logout",
-              status: "info",
-              isClosable: true,
-              duration: 3000,
-            });
-          }}
-          className="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-[#1F2937] lg:text-base"
-        >
-          <ArrowLeftFromLine className="w-6 h-6" />
-          Log Out
-        </button>}
+              toast({
+                title: "You have been Logout",
+                status: "info",
+                isClosable: true,
+                duration: 3000,
+              });
+            }}
+            className="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-[#1F2937] lg:text-base"
+          >
+            <ArrowLeftFromLine className="w-6 h-6" />
+            Log Out
+          </button>
+        )}
       </div>
       {/* <!-- Dropdown End --> */}
     </div>

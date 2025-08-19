@@ -14,6 +14,7 @@ import Image from "next/image";
 import { HiLockClosed, HiOutlineMail } from "react-icons/hi";
 import { FaCircleExclamation, FaCircleInfo } from "react-icons/fa6";
 import FullTextLogo from "@/components/Logos/FullTextLogo";
+import { isSubdomain } from "@/utils/subdomain";
 
 const SignIn: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -27,9 +28,10 @@ const SignIn: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [loginAttempt, setLoginAttempt] = useState(0);
   const [isRemember, setIsRemember] = useState(false);
-
+  
   const router = useRouter();
   const toast = useToast();
+  const isASubdomain = isSubdomain(window.location.hostname);
 
   const validateForm = () => {
     try {
@@ -60,14 +62,14 @@ const SignIn: React.FC = () => {
   const handleSubmit = async () => {
     if (loginAttempt >= 4) {
       setError(
-        "Too many failed attempts. Please wait 2 minutes before trying again or reset your password",
+        "Too many failed attempts. Please wait 2 minutes before trying again or reset your password"
       );
       setTimeout(
         () => {
           setLoginAttempt(0);
           setError(null);
         },
-        2 * 60 * 1000,
+        2 * 60 * 1000
       );
       return;
     }
@@ -85,8 +87,8 @@ const SignIn: React.FC = () => {
         ip,
         isRemember,
       });
-     
-      if(response?.status === 401){
+
+      if (response?.status === 401) {
         toast({
           title: "Invalid credentials",
           status: "error",
@@ -113,9 +115,11 @@ const SignIn: React.FC = () => {
           router.replace(`/verify`);
         } else {
           if (session?.user?.me?.isAdmin) {
-            router.replace("/"); // admin redirect
+            router.replace("/"); // admin dashboard
           } else {
-            router.replace("/"); // user redirect
+            if (isASubdomain) {
+              router.replace(`/dashboard`);
+            } else router.replace("/"); // user redirect
           }
         }
       } else if (response?.error?.includes("403")) {
@@ -123,7 +127,7 @@ const SignIn: React.FC = () => {
         return;
       } else {
         setError(
-          "Password or email do not match. Please re-check your email or password",
+          "Password or email do not match. Please re-check your email or password"
         );
       }
     } catch (error) {
@@ -142,6 +146,7 @@ const SignIn: React.FC = () => {
     }
   };
 
+
   return (
     <div className="flex min-h-screen flex-col justify-between font-inter">
       <header
@@ -153,8 +158,10 @@ const SignIn: React.FC = () => {
 
       <div className="flex flex-1 flex-col items-center justify-center bg-zimongo-bg">
         <h1 className="mt-4 flex gap-2 items-center px-4 py-2 text-center text-2xl font-bold sm:mb-3 ">
-          Welcome to <span className="text-4xl text-zimongo-primary">Zimongo</span>
+          Welcome to{" "}
+          <span className="text-4xl text-zimongo-primary">Zimongo</span>
         </h1>
+        { isASubdomain && <p className="text-sm text-zimongo-primary mb-3">Signin to access your dashboard.</p>}
         <div className="w-full max-w-md rounded-lg bg-white p-4 shadow-lg sm:px-6 sm:py-5.5">
           <h2 className="text-gray-800 mb-2 text-center text-xl font-bold sm:mb-3 sm:text-2xl">
             Login

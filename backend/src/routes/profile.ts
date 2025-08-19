@@ -8,6 +8,11 @@ import User from "../models/User";
 import mongoose, { mongo, Types } from "mongoose";
 import { categories } from "../constant/profile";
 import Permission, { IPermission } from "../models/Permission";
+import { uploadFile } from "../middleware/file";
+import { bucketHelper } from "../lib/aws_s3";
+import multer from "multer";
+
+const upload = multer();
 
 const profileRouter = express.Router();
 
@@ -37,6 +42,7 @@ async function generateUniqueSlug(companyName: string) {
 // create profile
 profileRouter.post(
   "/",
+  upload.single("logoFile"),
   Authentication.User,
   async (req: CustomRequest, res: Response) => {
     try {
@@ -79,6 +85,7 @@ profileRouter.post(
         "zip",
         "mobile",
         "website",
+        "email",
       ];
 
       for (const field of requiredFields) {
@@ -101,10 +108,34 @@ profileRouter.post(
         permissionData.canSellServices = true;
       }
 
+      if (req.file) {
+        const filePath = `logos/${req.context?.user?.id}-${Date.now()}-${
+          req.file.originalname
+        }`;
+
+        try {
+          await bucketHelper.save(filePath, req.file.buffer);
+        } catch (error) {
+          logger.error("Error uploading file to S3:", (error as Error).message);
+          return res.status(500).json({
+            success: false,
+            msg: "Error uploading file to S3.",
+            error: (error as Error).message,
+          });
+        }
+
+        profileData.logoFile = {
+          type: req.file.mimetype,
+          path: filePath,
+          originalName: req.file.originalname,
+        };
+      }
+
       const newProfile = await Profile.create(profileData);
 
       await User.findByIdAndUpdate(profileData.userId, {
         profileSlug: newProfile.slug,
+        picture: newProfile.logoFile,
       });
 
       await Permission.create({
@@ -122,10 +153,71 @@ profileRouter.post(
   }
 );
 
+// get profile using userId
+profileRouter.get(
+  "/:userId",
+  Authentication.User,
+  async (req: CustomRequest, res: Response) => {
+    try {
+      const userId = req.params.userId;
+
+      if (!userId) {
+        logger.error("UserID is required to get a profile.");
+        return res
+          .status(400)
+          .json({ msg: "Invalid attempt to get a profile." });
+      }
+
+      const profile = await Profile.findOne({ userId });
+
+      if (!profile) {
+        logger.error(`Profile not found for user: ${userId}`);
+        return res.status(404).json({ msg: "Profile not found." });
+      }
+
+      res.status(200).json({ msg: "Profile found.", data: profile });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ msg: "Internal server error." });
+    }
+  }
+);
+
+// get profile using profileId
+profileRouter.get(
+  "/:id",
+  Authentication.User,
+  async (req: CustomRequest, res: Response) => {
+    try {
+      const id = req.params.id;
+
+      if (!id) {
+        logger.error("UserID is required to get a profile.");
+        return res
+          .status(400)
+          .json({ msg: "Invalid attempt to get a profile." });
+      }
+
+      const profile = await Profile.findById(id);
+
+      if (!profile) {
+        logger.error(`Profile not found for the id: ${id}`);
+        return res.status(404).json({ msg: "Profile not found." });
+      }
+
+      res.status(200).json({ msg: "Profile found.", data: profile });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ msg: "Internal server error." });
+    }
+  }
+);
+
 // update profile
 profileRouter.put(
   "/:id",
   Authentication.User,
+  upload.single("logoFile"),
   async (req: CustomRequest, res: Response) => {
     try {
       if (!req.params.id) {
@@ -168,16 +260,46 @@ profileRouter.put(
       }
 
       // secure update
-      if (profile.userId !== req.context?.user._id) {
+      if (
+        profile.userId._id.toString() !==
+        (req?.context?.user?._id as Types.ObjectId).toString()
+      ) {
+        console.log(
+          profile.userId,
+          typeof profile.userId,
+          req.context?.user._id,
+          typeof req.context?.user._id
+        );
         logger.warn(
           `Unauthorized profile update attempt by user: ${req.context?.user._id}`
         );
-        return res
-          .status(403)
-          .json({
+        return res.status(403).json({
+          success: false,
+          msg: "You are not authorized to update this profile.",
+        });
+      }
+
+      if (req.file) {
+        const filePath = `logos/${req.context?.user?.id}-${Date.now()}-${
+          req.file.originalname
+        }`;
+
+        try {
+          await bucketHelper.save(filePath, req.file.buffer);
+        } catch (error) {
+          logger.error("Error uploading file to S3:", (error as Error).message);
+          return res.status(500).json({
             success: false,
-            msg: "You are not authorized to update this profile.",
+            msg: "Error uploading file to S3.",
+            error: (error as Error).message,
           });
+        }
+
+        updateData.logoFile = {
+          type: req.file.mimetype,
+          path: filePath,
+          originalName: req.file.originalname,
+        };
       }
 
       // Apply updates
@@ -187,16 +309,20 @@ profileRouter.put(
         { new: true }
       );
 
-      logger.info(
-        `Profile updated successfully for user: ${req.context.user._id}`
-      );
-      return res
-        .status(200)
-        .json({
-          success: true,
-          msg: "Profile updated successfully.",
-          data: updatedProfile,
+      if (updatedProfile) {
+        await User.findByIdAndUpdate(req.context?.user._id, {
+          picture: updatedProfile.logoFile,
         });
+      }
+
+      logger.info(
+        `Profile updated successfully for user: ${req.context?.user._id}`
+      );
+      return res.status(200).json({
+        success: true,
+        msg: "Profile updated successfully.",
+        data: updatedProfile,
+      });
     } catch (error) {
       logger.error("Unexpected error while updating profile", { error });
       return res

@@ -34,7 +34,11 @@ export interface IProfile extends Document {
   landline?: string;
   website: string;
   companyDescription: string;
-  logoFile?: string;
+  logoFile?: {
+    type: string;
+    path: string;
+    originalName: string;
+  };
   businessModel: string;
   certifications?: string;
   socials?: Socials;
@@ -45,6 +49,7 @@ export interface IProfile extends Document {
   status: string;
   completeness?: number;
   slug: string;
+  email: string;
 }
 
 // Schema definition
@@ -80,7 +85,11 @@ const ProfileSchema = new Schema<IProfile>(
     landline: { type: String },
     website: { type: String, required: true },
     companyDescription: { type: String, required: true },
-    logoFile: { type: String },
+    logoFile: {
+      type: { type: String },
+      path: { type: String },
+      originalName: { type: String },
+    },
     businessModel: { type: String, required: true },
     certifications: { type: String },
     socials: { type: SocialsSchema },
@@ -89,6 +98,7 @@ const ProfileSchema = new Schema<IProfile>(
     status: { type: String, default: "pending" },
     completeness: { type: Number, default: 0 },
     slug: { type: String },
+    email: { type: String, required: true },
   },
   {
     timestamps: true, // auto-manages createdAt & updatedAt
@@ -122,7 +132,6 @@ ProfileSchema.pre<IProfile>("save", async function (next) {
   this.slug = slug;
   next();
 });
-
 
 // Export the model and return type
 const Profile = model<IProfile>("Profile", ProfileSchema);

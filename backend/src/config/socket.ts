@@ -17,13 +17,16 @@ export class SocketServer {
           if (!origin) return callback(null, true);
 
           // Allow localhost and subdomain requests
-          if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
+          if (origin.includes("localhost") || origin.includes("127.0.0.1") || origin.includes("lvh.me")) {
             return callback(null, true);
           }
 
           // Allow production domains
 
           // Allow storage app domains
+          if (origin.includes("amazonaws.com")) {
+            return callback(null, true);
+          }
 
           callback(new Error("Not allowed by CORS"));
         },

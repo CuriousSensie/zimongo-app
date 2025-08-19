@@ -47,11 +47,20 @@ export function extractSubdomain(hostname: string): string | null {
     }
   }
 
-  // Check if it's a development subdomain (.lvh.me)
+  // (.lvh.me)
   if (hostWithoutPort.endsWith(".lvh.me")) {
     if (parts.length >= 2) {
       const subdomain = parts[0];
       if (subdomain) {
+        return subdomain;
+      }
+    }
+  }
+
+  if (hostWithoutPort.endsWith(".nip.io")) {
+    if (parts.length >= 2) {
+      const subdomain = parts[0];
+      if (subdomain && subdomain !== "www" && subdomain !== "127") {
         return subdomain;
       }
     }

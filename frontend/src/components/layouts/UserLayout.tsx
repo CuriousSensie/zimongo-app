@@ -1,6 +1,5 @@
 "use client";
 import React, { useState } from "react";
-import { Progress } from "@chakra-ui/react";
 import useUser from "@/hooks/useUser";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -20,7 +19,7 @@ export default function UserLayout({
   return (
     <>
       {/* <!-- ===== Page Wrapper Start ===== --> */}
-      <div className="flex h-screen ">
+      <div className="flex h-screen bg-zimongo-bg ">
         {/* <!-- ===== Sidebar Start ===== --> */}
         <UserSidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
         {/* <!-- ===== Sidebar End ===== --> */}
@@ -35,22 +34,15 @@ export default function UserLayout({
           {/* <!-- ===== Header End ===== --> */}
 
           {/* <!-- ===== Main Content Start ===== --> */}
-          <main className="bg-zimongo-bg">
+          <main className="bg-zimongo-bg mt-[8vh]">
             <div className="">
               {status === "loading" || !user ? (
                 <div className="">
-                  <Progress.Root>
-                    <Progress.Track>
-                      <Progress.Range />
-                    </Progress.Track>
-                    <Progress.Label />
-                    <Progress.ValueText />
-                  </Progress.Root>
                   <h2 className="text-center text-2xl ">
                     Setting up your session
                   </h2>
                   <h3 className="text-center text-xl ">
-                    Try login back in if stuck
+                    Try signing in again if you are stuck.
                   </h3>
                 </div>
               ) : (

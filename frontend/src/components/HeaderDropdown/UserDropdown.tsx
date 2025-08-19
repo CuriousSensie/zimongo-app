@@ -8,6 +8,7 @@ import { ArrowLeftFromLine, ChevronDown, User } from "lucide-react";
 import { extractSubdomain } from "@/utils/subdomain";
 import Image from "next/image";
 import Avatar from "../../../public/avatar.png";
+import { NEXT_PUBLIC_S3_BASE_URL } from "@/constant/env";
 
 const DropdownUser = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -68,10 +69,17 @@ const DropdownUser = () => {
           </span>
         </span>
 
-        <div className="h-10 w-10 overflow-hidden rounded-full border border-stroke shadow-lg">
+        <div className="h-[5vh] w-[5vh] overflow-hidden rounded-full border border-stroke shadow-lg">
           <Image
-            src={Avatar}
+            src={user.me?.picture.path ? `${NEXT_PUBLIC_S3_BASE_URL}/${user.me.picture.path}` : Avatar}
             alt="Avatar"
+            height={42}
+            width={42}
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+            }}
             className="w-[6vh] h-[6vh] rounded-full object-fit items-center"
           />
         </div>

@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Label } from "../ui/label";
-import { Input } from "../ui/input";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../ui/select";
+} from "@/components/ui/select";
 import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
 import { onboarding } from "@/constant/onboarding";
@@ -21,22 +21,30 @@ import { useRouter } from "next/navigation";
 const stepSchemas = [
   // Step 0
   z.object({
-    companySize: z.string().min(1, "Company Size is required."),
-    yearOfEstablishment: z
+    companySize: z.string().nonempty("Company Size is required."),
+    yearOfEstablishment: z.coerce
+      .number()
+      .min(1950, { message: "Year must be after 1950" })
+      .max(new Date().getFullYear(), {
+        message: `Year cannot be later than ${new Date().getFullYear()}`,
+      }),
+    businessSubcategory: z
       .string()
-      .min(1, "Year of Establishment is required."),
-    businessSubcategory: z.string().min(1, "Business Subcategory is required."),
-    businessCategory: z.string().min(1, "Business Category is required."),
-    legalStatus: z.string().min(1, "Legal Status is required."),
-    companyName: z.string().min(1, "Company Name is required."),
+      .nonempty("Business Subcategory is required."),
+    businessCategory: z.string().nonempty("Business Category is required."),
+    legalStatus: z.string().nonempty("Legal Status is required."),
+    companyName: z
+      .string()
+      .nonempty("Company Name is required.")
+      .min(3, "Company Name must be at least 3 characters long."),
   }),
 
   // Step 1
   z.object({
-    website: z.url("Enter a valid website URL."),
+    website: z.url("Enter a valid website URL.").optional().or(z.literal("")),
     email: z.email("Enter a valid email address."),
     mobile: z.string().min(10, "Enter a valid mobile number."),
-    zip: z.string().min(1, "ZIP / Postal Code is required."),
+    zip: z.string().min(4, "ZIP / Postal Code is required."),
     address1: z.string().min(10, "Address seems to invalid."),
   }),
 
@@ -47,6 +55,14 @@ const stepSchemas = [
   }),
 
   // Step 3 (socials) is optional
+  z.object({
+    facebook: z.url("Invalid URL for Facebook").optional().or(z.literal("")),
+    insta: z.url("Invalid URL for Instagram").optional().or(z.literal("")),
+    linkedin: z.url("Invalid URL for Linkedin").optional().or(z.literal("")),
+    twitter: z.url("Invalid URL for Twitter").optional().or(z.literal("")),
+    youtube: z.url("Invalid URL for YouTube").optional().or(z.literal("")),
+    tiktok: z.url("Invalid URL for TikTok").optional().or(z.literal("")),
+  }),
 ];
 
 const OnboardingSteps = ({
@@ -171,7 +187,14 @@ const OnboardingSteps = ({
 
     try {
       const form = new FormData();
-      form.append("data", JSON.stringify(formData));
+
+      const { logoFile, ...rest} = formData; // append without logoFile
+      form.append("data", JSON.stringify(rest));
+
+      if (logoFile instanceof File) {
+        form.append("logoFile", logoFile);
+      }
+
       const response = await Api.createProfile(form);
 
       if (response.status === 200) {

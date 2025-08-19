@@ -5,7 +5,7 @@ export interface IUserBasic {
   email: string;
   name: string;
   isAdmin: boolean;
-  picture: string;
+  picture: { type: string; path: string; originalName: string };
   username?: string;
   companyName?: string;
   contactPersonName?: string;

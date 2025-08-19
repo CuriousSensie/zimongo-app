@@ -9,6 +9,7 @@ import { FiMail } from "react-icons/fi";
 import axios from "axios";
 import { getSession } from "next-auth/react";
 import FullTextLogo from "@/components/Logos/FullTextLogo";
+import { extractSubdomain } from "@/utils/subdomain";
 
 const VerifyOTP = () => {
   const [otp, setOtp] = useState("");
@@ -17,6 +18,7 @@ const VerifyOTP = () => {
   const [resendLoading, setResendLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+  const subdomain = extractSubdomain(window.location.hostname);
 
   // Handle OTP input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,7 +63,11 @@ const VerifyOTP = () => {
         if (!session?.user?.me?.isAdmin) {
           router.push("/");
         } else {
-          router.push("/");
+          if (subdomain) {
+            router.push("/dashboard");
+          } else {
+            router.push("/");
+          }
         }
       }
     } catch (err) {

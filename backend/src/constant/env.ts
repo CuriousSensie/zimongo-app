@@ -10,3 +10,8 @@ export const SOCKET_API_URL =
   process.env.SOCKET_API_URL || "http://localhost:5000";
 export const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || '';
 export const SENDGRID_FROM_EMAIL = process.env.SENDGRID_FROM_EMAIL || '';
+
+export const S3_REGION = process.env.S3_REGION || '';
+export const S3_ACCESS_KEY = process.env.S3_ACCESS_KEY || '';
+export const S3_SECRET_KEY = process.env.S3_SECRET_KEY || '';
+export const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME || '';

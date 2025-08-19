@@ -32,7 +32,7 @@ const authOptions: AuthOptions = {
               password: credentials.password,
               ip: credentials.ip,
               isRemember: credentials.isRemember,
-            },
+            }
           );
           if (res.status === 200 || res.status == 201) {
             return res.data;
@@ -64,7 +64,7 @@ const authOptions: AuthOptions = {
                 password: credentials.password,
                 ip: credentials.ip,
                 isRemember: credentials.isRemember,
-              },
+              }
             );
             if (res.status === 200 || res.status === 201) {
               return {
@@ -104,7 +104,7 @@ const authOptions: AuthOptions = {
                 password: credentials.password,
                 ip: credentials.ip,
                 isRemember: credentials.isRemember,
-              },
+              }
             );
             if (res.status === 200 || res.status === 201) {
               return {
@@ -141,7 +141,7 @@ const authOptions: AuthOptions = {
               email: credentials.email,
               password: credentials.password,
               ip: credentials.ip,
-            },
+            }
           );
           if (res.status === 201) {
             return res.data;
@@ -160,20 +160,20 @@ const authOptions: AuthOptions = {
     signIn: "/signin",
   },
   secret: process.env.NEXTAUTH_SECRET,
-  
-  // !! passing cookie options with domain to get same cookies across subdomains.
-  cookies: {
-    sessionToken: {
-      name: `next-auth.session-token`,
-      options: {
-        httpOnly: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
-        domain: process.env.COOKIE_DOMAIN || ".lvh.me",  
-      },
-    },
-  },
+
+  // // !! passing cookie options with domain to get same cookies across subdomains.
+  // cookies: {
+  //   sessionToken: {
+  //     name: `next-auth.session-token`,
+  //     options: {
+  //       httpOnly: process.env.NODE_ENV === "production",
+  //       sameSite: "lax",
+  //       path: "/",
+  //       secure: process.env.NODE_ENV === "production",
+  //       domain: process.env.COOKIE_DOMAIN || ".127.0.0.1.nip.io",
+  //     },
+  //   },
+  // },
 
   callbacks: {
     async signIn({ account, user }) {

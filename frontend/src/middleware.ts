@@ -42,24 +42,10 @@ function createSubdomainRewriteUrl(
   url: URL,
   req: NextRequest
 ) {
-  console.log("createSubdomainURL ");
-  console.log("subdomain:", subdomain);
-  console.log("url:", url);
-  console.log(
-    "final subdomain url created",
-    new URL(`/subdomain/${subdomain}${url.pathname}`, req.url)
-  );
   return new URL(`/subdomain/${subdomain}${url.pathname}`, req.url);
 }
 
 function createAdminRewriteUrl(subdomain: string, url: URL, req: NextRequest) {
-  console.log("createAdminURL ");
-  console.log("subdomain:", subdomain);
-  console.log("url:", url);
-  console.log(
-    "final subdomain url created",
-    new URL(`/subdomain/${subdomain}${url.pathname}`, req.url)
-  );
   return new URL(`/admin/${url.pathname}`, req.url);
 }
 
@@ -79,10 +65,8 @@ async function handleSubdomainRouting(
     secret: process.env.NEXTAUTH_SECRET,
   });
 
-  console.log("token: ", token);
 
   if (isWhitelistedPath(url.pathname)) {
-    console.log("whitelisted page");
     return NextResponse.rewrite(new URL(url.pathname, req.url));
   }
 
@@ -104,16 +88,13 @@ async function handleAdminRouting(
   url: URL,
   req: NextRequest
 ) {
-  console.log("handlesubdomainrouteing");
   const token = await getToken({
     req,
     secret: process.env.NEXTAUTH_SECRET,
   });
 
-  console.log("token: ", token);
 
   if (isWhitelistedPath(url.pathname)) {
-    console.log("whitelisted page");
     return NextResponse.rewrite(new URL(url.pathname, req.url));
   }
 
@@ -131,11 +112,6 @@ export default async function middleware(req: NextRequest) {
   const url = new URL(req.url);
   const hostname = req.headers.get("host") || "";
   const subdomain = extractSubdomain(hostname);
-
-  console.log("middleware function");
-  console.log("url: ", url);
-  console.log("hostname: ", hostname);
-  console.log("subdomain: ", subdomain);
 
   // root domain
   if (!subdomain) {

@@ -3,7 +3,11 @@ import { ISODateString, Session } from "next-auth";
 export interface IUser {
   name: string;
   email: string;
-  picture: string;
+  picture: {
+    type: string;
+    path: string;
+    originalName: string;
+  }
   resetToken: string;
   isEmailVerified: boolean;
   isAdmin: boolean;

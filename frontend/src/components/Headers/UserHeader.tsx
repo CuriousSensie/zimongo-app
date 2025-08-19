@@ -15,7 +15,9 @@ const UserHeader = ({
 }) => {
   return (
     // custom styling from parent (make sure it doesnt conflict)
-    <div className={`${className} w-full h-[8vh] bg-zimongo-header-base`}>
+    <div
+      className={`${className} w-full h-[8vh] bg-zimongo-header-base fixed top-0 left-0`}
+    >
       <header
         id="header"
         className="flex h-[8vh] items-center justify-between border-b border-neutral-500 px-4 py-2 sm:px-10 bg-zimongo-header-base"
@@ -28,7 +30,7 @@ const UserHeader = ({
               e.stopPropagation();
               setSidebarOpen(!sidebarOpen);
             }}
-            className="z-99999 block rounded-sm border border-stroke bg-white p-1.5 shadow-sm dark:border-strokedark dark:bg-boxdark lg:hidden"
+            className="z-9999 block rounded-sm border border-stroke bg-white p-1.5 shadow-sm dark:border-strokedark dark:bg-boxdark lg:hidden"
           >
             <span className="relative block h-5.5 w-5.5 cursor-pointer">
               <span className="du-block absolute right-0 h-full w-full">
@@ -53,7 +55,7 @@ const UserHeader = ({
             </span>
           </button>
           {/* Logo comes from sidebar in large screens */}
-          <Link href='/dashboard' className="lg:hidden">
+          <Link href="/dashboard" className="lg:hidden">
             <FullTextLogo />
           </Link>
         </div>

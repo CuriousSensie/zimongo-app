@@ -13,6 +13,7 @@ import morgan from "morgan";
 import userRouter from "./src/routes/user";
 import LocationProvider from "./src/lib/location";
 import profileRouter from "./src/routes/profile";
+import fileRouter from "./src/routes/file";
 
 dotenv.config();
 
@@ -25,13 +26,12 @@ app.use(
       // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
 
-      // Allow localhost and subdomain requests 
-      // TODO: ONLY ALLOW PRODUCTION and DEV DOMAINS
-      if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
+      // ONLY ALLOW PRODUCTION and DEV DOMAINS
+      if (origin.includes("localhost") || origin.includes("127.0.0.1") || origin.includes("lvh.me")) {
         return callback(null, true);
       }
 
-      // Allow production domains
+      // TODO: Allow production domains
 
       // Allow storage app domains
 
@@ -81,6 +81,9 @@ app.get("/api/test", async (req, res) => {
 });
 app.use("/api/user", userRouter);
 app.use("/api/profile", profileRouter);
+app.use("/file", fileRouter);
+
+
 // Error handling middleware
 app.use(errorHandler);
 

@@ -70,13 +70,31 @@ export class API {
     return this.instance.get("/user/location");
   }
 
+  // PROFILE APIS
   createProfile(formData: FormData) {
     return this.instance.post("/profile", formData, {
       headers: {
-        "Content-Type": "application/json", // ! change to multipart/form-data when sending files as well
+        "Content-Type": "multipart/form-data", 
       },
     });
   }
+
+  getProfileById(id: string) {
+    return this.instance.get(`/profile/${id}`);
+  }
+
+  getProfileByUserId(userId: string) {
+    return this.instance.get(`/profile/${userId}`);
+  }
+
+  updateProfile(id: string, formData: FormData) {
+    return this.instance.put(`/profile/${id}`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  }
+
 }
 
 const Api = new API();

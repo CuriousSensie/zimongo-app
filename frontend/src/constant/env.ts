@@ -6,3 +6,4 @@ export const NEXT_PUBLIC_API_URL =
   
 export const NEXT_PUBLIC_SOCKET_API_URL = process.env.NEXT_PUBLIC_SOCKET_API_URL ?? "http://localhost:5000";
 
+export const NEXT_PUBLIC_S3_BASE_URL = process.env.NEXT_PUBLIC_S3_BASE_URL;
