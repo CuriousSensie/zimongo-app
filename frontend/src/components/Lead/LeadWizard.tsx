@@ -1,9 +1,9 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import Api from "@/lib/api";
-import { LeadType, CreateLeadFormData, LeadIntent } from "@/types/lead";
+import { LeadType, CreateLeadFormData, LeadIntent, LeadFile } from "@/types/lead";
 import { leadSchema } from "@/schema/lead.schema";
 import BuySellStep from "./steps/BuySellStep";
 import TypeSelectionStep from "./steps/TypeSelectionStep";
@@ -12,12 +12,14 @@ import ProductServiceStep from "./steps/ProductServiceStep";
 import FinalDetailsStep from "./steps/FinalDetailsStep";
 import useUser from "@/hooks/useUser";
 import { IProfile } from "@/types/profile";
+import { FileCleanupManager } from "@/utils/fileCleanup";
 
 const LeadWizard = () => {
   const { me } = useUser();
   const [profile, setProfile] = useState<IProfile>();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const fileCleanupManager = useRef(new FileCleanupManager());
 
   // get profile
   useEffect(() => {
@@ -56,7 +58,7 @@ const LeadWizard = () => {
       address: "",
       zipCode: "",
     },
-    priority: "medium",
+    priority: "low",
     isPublic: true,
   });
 
@@ -76,6 +78,49 @@ const LeadWizard = () => {
     setWizardData((prev) => ({ ...prev, ...data }));
   };
 
+  // Handle file tracking for cleanup
+  const handleFilesChange = (files: LeadFile[]) => {
+    // Track new files for potential cleanup
+    const currentFiles = wizardData.productInfo?.productFiles || [];
+    const newFiles = files.filter(file => 
+      !currentFiles.some(existing => existing.path === file.path)
+    );
+    
+    if (newFiles.length > 0) {
+      fileCleanupManager.current.addFiles(newFiles);
+    }
+  };
+
+  // Cleanup function for when user cancels or navigates away
+  const handleCleanup = async () => {
+    await fileCleanupManager.current.cleanupAll();
+  };
+
+  // Add cleanup on component unmount or page navigation
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Cleanup files if user navigates away without saving
+      const trackedFiles = fileCleanupManager.current.getTrackedFiles();
+      if (trackedFiles.length > 0) {
+        e.preventDefault();
+        e.returnValue = 'You have uploaded files that will be lost. Are you sure you want to leave?';
+        // Note: Cleanup will happen in the background
+        handleCleanup();
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      // Cleanup on component unmount if files weren't saved
+      const trackedFiles = fileCleanupManager.current.getTrackedFiles();
+      if (trackedFiles.length > 0) {
+        handleCleanup();
+      }
+    };
+  }, []);
+
   const nextStep = () => {
     if (currentStep < totalSteps) {
       setCurrentStep((prev) => prev + 1);
@@ -93,6 +138,12 @@ const LeadWizard = () => {
 
     try {
       // Validate the form data
+      // remove images and validate data
+      const { productInfo, serviceInfo, ...rest } = wizardData;
+      const leadData = {
+        ...rest,
+        productInfo: productInfo ? { ...productInfo, productFiles: productInfo.productFiles || [] } : undefined,
+      };
       const validation = leadSchema.safeParse(wizardData);
 
       if (!validation.success) {
@@ -113,10 +164,14 @@ const LeadWizard = () => {
         return;
       }
 
+      console.log("Submitting lead data:", validation.data);
       // Submit the lead
       const res = await Api.createLead(validation.data);
 
       if (res.status === 201) {
+        // Clear file tracking since lead was created successfully
+        fileCleanupManager.current.clearTracking();
+        
         toast.success("Lead created successfully!", {
           position: "top-center",
           richColors: true,
@@ -188,6 +243,7 @@ const LeadWizard = () => {
             onUpdate={updateWizardData}
             onNext={nextStep}
             onPrev={prevStep}
+            // onFilesChange={handleFilesChange}
           />
         );
       case 5:

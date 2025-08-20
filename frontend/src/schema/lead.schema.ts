@@ -1,12 +1,12 @@
 import { z } from "zod";
-import { 
-  LeadType, 
-  ServiceType, 
-  ServiceFrequency, 
-  DimensionUnit, 
-  WeightUnit, 
-  UnitOfMeasurement, 
-  LeadIntent
+import {
+  LeadType,
+  ServiceType,
+  ServiceFrequency,
+  DimensionUnit,
+  WeightUnit,
+  UnitOfMeasurement,
+  LeadIntent,
 } from "@/types/lead";
 
 // Common validation schemas
@@ -38,22 +38,25 @@ const productInfoSchema = z.object({
   productName: z
     .string({ error: "Product name is required" })
     .min(2, "Product name must be at least 2 characters long"),
-  productCategory: z
-    .string({ error: "Product category is required" }),
+  productCategory: z.string({ error: "Product category is required" }),
   productDescription: z
     .string({ error: "Product description is required" })
     .min(10, "Product description must be at least 10 characters long"),
   specifications: z.string().optional(),
-  dimensions: z.object({
-    length: z.number().positive().optional(),
-    width: z.number().positive().optional(),
-    height: z.number().positive().optional(),
-    unit: z.enum(DimensionUnit).default(DimensionUnit.CM),
-  }).optional(),
-  weight: z.object({
-    value: z.number().positive(),
-    unit: z.enum(WeightUnit).default(WeightUnit.KG),
-  }).optional(),
+  dimensions: z
+    .object({
+      length: z.number().positive().optional(),
+      width: z.number().positive().optional(),
+      height: z.number().positive().optional(),
+      unit: z.enum(DimensionUnit).default(DimensionUnit.CM),
+    })
+    .optional(),
+  weight: z
+    .object({
+      value: z.number().positive(),
+      unit: z.enum(WeightUnit).default(WeightUnit.KG),
+    })
+    .optional(),
   volumeCapacity: z.string().optional(),
   material: z.string().optional(),
   colors: z.array(z.string()).optional(),
@@ -68,11 +71,20 @@ const productInfoSchema = z.object({
     .default(UnitOfMeasurement.PIECES),
   budgetPerUnit: z.number().positive().optional(),
   expectedDeliveryDate: z.string().optional(),
-  deliveryLocation: z
-    .string({ error: "Delivery location is required" }),
+  deliveryLocation: z.string({ error: "Delivery location is required" }),
   isOneTimePurchase: z.boolean().default(true),
   recurringFrequency: z.nativeEnum(ServiceFrequency).optional(),
   additionalNotes: z.string().optional(),
+  productFiles: z
+    .array(
+      z.object({
+        type: z.string(),
+        path: z.string(),
+        originalName: z.string(),
+        size: z.number().positive(),
+      })
+    )
+    .min(1, "At least one product image is required."),
 });
 
 // Service Information Schema
@@ -80,21 +92,18 @@ const serviceInfoSchema = z.object({
   serviceName: z
     .string({ error: "Service name is required" })
     .min(2, "Service name must be at least 2 characters long"),
-  serviceCategory: z
-    .string({ error: "Service category is required" }),
+  serviceCategory: z.string({ error: "Service category is required" }),
   serviceDescription: z
     .string({ error: "Service description is required" })
     .min(10, "Service description must be at least 10 characters long"),
   scopeOfWork: z
     .string({ error: "Scope of work is required" })
     .min(10, "Scope of work must be at least 10 characters long"),
-  typeOfService: z
-    .enum(ServiceType, { error: "Type of service is required" }),
+  typeOfService: z.enum(ServiceType, { error: "Type of service is required" }),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
   serviceFrequency: z.enum(ServiceFrequency).optional(),
-  locationOfService: z
-    .string({ error: "Location of service is required" }),
+  locationOfService: z.string({ error: "Location of service is required" }),
   isRemote: z.boolean().default(false),
   requiredToolsOrResources: z.string().optional(),
   skillsOrExpertiseNeeded: z.string().optional(),
@@ -104,29 +113,31 @@ const serviceInfoSchema = z.object({
 });
 
 // Main Lead Schema
-export const leadSchema = z.object({
-  leadIntent: z.enum(LeadIntent, { error: "Lead intent is required" }),
-  leadType: z.enum(LeadType, { error: "Lead type is required" }),
-  title,
-  description,
-  budget,
-  currency: z.string().default("USD"),
-  location,
-  priority: z.enum(["low", "medium", "high", "urgent"]).default("medium"),
-  expiryDate: z.string().optional(),
-  isPublic: z.boolean().default(true),
-}).and(
-  z.discriminatedUnion("leadType", [
-    z.object({
-      leadType: z.literal(LeadType.PRODUCT),
-      productInfo: productInfoSchema,
-    }),
-    z.object({
-      leadType: z.literal(LeadType.SERVICE),
-      serviceInfo: serviceInfoSchema,
-    }),
-  ])
-);
+export const leadSchema = z
+  .object({
+    leadIntent: z.enum(LeadIntent, { error: "Lead intent is required" }),
+    leadType: z.enum(LeadType, { error: "Lead type is required" }),
+    title,
+    description,
+    budget,
+    currency: z.string().default("USD"),
+    location,
+    priority: z.enum(["low", "medium", "high", "urgent"]).default("medium"),
+    expiryDate: z.string().optional(),
+    isPublic: z.boolean().default(true),
+  })
+  .and(
+    z.discriminatedUnion("leadType", [
+      z.object({
+        leadType: z.literal(LeadType.PRODUCT),
+        productInfo: productInfoSchema,
+      }),
+      z.object({
+        leadType: z.literal(LeadType.SERVICE),
+        serviceInfo: serviceInfoSchema,
+      }),
+    ])
+  );
 
 // Schema for product leads only
 export const productLeadSchema = z.object({

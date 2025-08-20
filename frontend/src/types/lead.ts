@@ -133,7 +133,7 @@ export interface ILead {
   };
   
   // Lead status and metadata
-  status: string; // draft, active, closed, expired
+  status: string; // inactive, active, closed, expired
   priority: string; // low, medium, high, urgent
   expiryDate?: string;
   

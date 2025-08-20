@@ -1,5 +1,5 @@
 import express, { Response } from "express";
-import Lead, { ILead, LeadIntent, LeadType } from "../models/Lead";
+import Lead, { ILead, LeadIntent, LeadType, ProductInfo, ServiceInfo } from "../models/Lead";
 import User from "../models/User";
 import Profile from "../models/Profile";
 import Authentication from "../middleware/auth";
@@ -17,8 +17,8 @@ interface CreateLeadPayload {
   leadType: LeadType;
   title: string;
   description: string;
-  productInfo?: any;
-  serviceInfo?: any;
+  productInfo?: ProductInfo;
+  serviceInfo?: ServiceInfo;
   budget?: number;
   currency?: string;
   location: {
@@ -121,6 +121,11 @@ leadRouter.post(
 
       // Add type-specific information
       if (leadType === LeadType.PRODUCT) {
+        if (!productInfo?.productFiles || productInfo.productFiles.length === 0) {
+          return res
+            .status(400)
+            .json({ message: "At least one image are required for product leads" });
+        }
         leadData.productInfo = productInfo;
       } else {
         leadData.serviceInfo = serviceInfo;
@@ -133,12 +138,6 @@ leadRouter.post(
 
       const newLead = new Lead(leadData);
       await newLead.save();
-
-      // Populate user and profile information for response
-      await newLead.populate([
-        { path: "userId", select: "name email" },
-        { path: "profileId", select: "companyName slug" },
-      ]);
 
       logger.info(`Lead created successfully by user ${userId}`, {
         leadId: newLead._id,
@@ -165,7 +164,8 @@ leadRouter.get("/", async (req: CustomRequest, res: Response) => {
   try {
     const {
       page = 1,
-      limit = 10,
+      limit = 5,
+      leadIntent,
       leadType,
       status,
       country,
@@ -181,7 +181,7 @@ leadRouter.get("/", async (req: CustomRequest, res: Response) => {
     // Build filter query
     const filter: any = {
       isPublic: true,
-      status: { $ne: "draft" },
+      status: { $ne: "inactive" },
     };
 
     // Add filters
@@ -190,6 +190,7 @@ leadRouter.get("/", async (req: CustomRequest, res: Response) => {
     if (country) filter["location.country"] = country;
     if (state) filter["location.state"] = state;
     if (city) filter["location.city"] = city;
+    if (leadIntent) filter.leadIntent = leadIntent;
 
     // Budget range filter
     if (minBudget || maxBudget) {
@@ -267,6 +268,8 @@ leadRouter.get(
       const {
         page = 1,
         limit = 10,
+        search,
+        leadIntent,
         status,
         leadType,
         sortBy = "createdAt",
@@ -275,8 +278,15 @@ leadRouter.get(
 
       // Build filter query
       const filter: any = { userId };
-      if (status) filter.status = status;
-      if (leadType) filter.leadType = leadType;
+      if (search && search !== "") {
+        filter.$or = [
+          { title: { $regex: search, $options: "i" } },
+          { description: { $regex: search, $options: "i" } },
+        ];
+      }
+      if (leadIntent && leadIntent !== "all") filter.leadIntent = leadIntent;
+      if (status && status !== "all") filter.status = status;
+      if (leadType && leadType !== "all") filter.leadType = leadType;
 
       // Pagination
       const pageNum = Math.max(1, Number(page));
@@ -472,7 +482,7 @@ leadRouter.patch(
         return res.status(401).json({ message: "User not authenticated" });
       }
 
-      if (!["draft", "active", "closed", "expired"].includes(status)) {
+      if (!["inactive", "active", "closed", "expired"].includes(status)) {
         return res.status(400).json({ message: "Invalid status" });
       }
 

@@ -57,7 +57,7 @@ interface LeadFile {
 }
 
 // Interface for Product Information
-interface ProductInfo {
+export interface ProductInfo {
   productName: string;
   productCategory: string;
   productDescription: string;
@@ -90,7 +90,7 @@ interface ProductInfo {
 }
 
 // Interface for Service Information
-interface ServiceInfo {
+export interface ServiceInfo {
   serviceName: string;
   serviceCategory: string;
   serviceDescription: string;
@@ -134,7 +134,7 @@ export interface ILead extends Document {
   };
   
   // Lead status and metadata
-  status: string; // draft, active, flagged, closed, expired
+  status: string; // inactive active, flagged, closed, expired
   priority: string; // low, medium, high, urgent
   expiryDate?: Date;
   
@@ -291,13 +291,13 @@ const LeadSchema = new Schema<ILead>({
   // Lead status and metadata
   status: { 
     type: String, 
-    enum: ["draft", "active", "closed", "expired"], 
-    default: "draft" 
+    enum: ["inactive", "active", "closed", "expired"], 
+    default: "inactive" 
   },
   priority: { 
     type: String, 
     enum: ["low", "medium", "high", "urgent"], 
-    default: "medium" 
+    default: "low" 
   },
   expiryDate: { type: Date },
   

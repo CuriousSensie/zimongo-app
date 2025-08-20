@@ -12,11 +12,11 @@ interface ProductServiceStepProps {
   onPrev: () => void;
 }
 
-const ProductServiceStep: React.FC<ProductServiceStepProps> = ({ 
-  data, 
-  onUpdate, 
-  onNext, 
-  onPrev 
+const ProductServiceStep: React.FC<ProductServiceStepProps> = ({
+  data,
+  onUpdate,
+  onNext,
+  onPrev,
 }) => {
   const handleProductInfoChange = (field: string, value: any) => {
     onUpdate({
@@ -73,7 +73,9 @@ const ProductServiceStep: React.FC<ProductServiceStepProps> = ({
           {data.leadType === LeadType.PRODUCT ? "Product" : "Service"} Details
         </h3>
         <p className="text-gray-600">
-          Provide detailed information about the {data.leadType === LeadType.PRODUCT ? "product" : "service"} you're {data.intent === "buy" ? "looking for" : "offering"}
+          Provide detailed information about the{" "}
+          {data.leadType === LeadType.PRODUCT ? "product" : "service"} you're{" "}
+          {data.intent === "buy" ? "looking for" : "offering"}
         </p>
       </div>
 
@@ -102,11 +104,7 @@ const ProductServiceStep: React.FC<ProductServiceStepProps> = ({
 
       {/* Navigation Buttons */}
       <div className="flex justify-between mt-8">
-        <Button
-          variant="outline"
-          onClick={onPrev}
-          className="px-8 py-2"
-        >
+        <Button variant="outline" onClick={onPrev} className="px-8 py-2">
           Back
         </Button>
         <Button

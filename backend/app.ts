@@ -83,7 +83,7 @@ app.get("/api/test", async (req, res) => {
 app.use("/api/user", userRouter);
 app.use("/api/profile", profileRouter);
 app.use("/api/lead", leadRouter);
-app.use("/file", fileRouter);
+app.use("/api/file", fileRouter);
 
 
 // Error handling middleware

@@ -124,8 +124,8 @@ export class API {
     return this.instance.patch(`/lead/${id}/status`, { status });
   }
 
-  uploadLeadFiles(id: string, formData: FormData) {
-    return this.instance.post(`/lead/${id}/upload`, formData, {
+  uploadFiles(formData: FormData) {
+    return this.instance.post(`/file/upload`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
