@@ -19,7 +19,7 @@ export default function UserLayout({
   return (
     <>
       {/* <!-- ===== Page Wrapper Start ===== --> */}
-      <div className="flex h-screen bg-zimongo-bg ">
+      <div className="flex h-screen bg-zimongo-bg">
         {/* <!-- ===== Sidebar Start ===== --> */}
         <UserSidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
         {/* <!-- ===== Sidebar End ===== --> */}

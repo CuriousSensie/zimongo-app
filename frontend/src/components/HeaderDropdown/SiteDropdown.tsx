@@ -4,7 +4,7 @@ import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { useToast } from "@chakra-ui/toast";
 import useUser from "@/hooks/useUser";
-import { ArrowLeftFromLine, ChevronDown, User } from "lucide-react";
+import { ArrowLeftFromLine, ArrowRightFromLine, ChevronDown, ExternalLink, User } from "lucide-react";
 import { extractSubdomain } from "@/utils/subdomain";
 import Image from "next/image";
 import Avatar from "../../../public/avatar.png";
@@ -104,6 +104,7 @@ const SiteDropdown = () => {
               href="/browse"
               className="flex items-center gap-3.5 text-sm font-medium duration-300 ease-in-out hover:text-[#1F2937] lg:text-base"
             >
+              <ExternalLink className="w-6 h-6" />
               Browse Leads
             </Link>
           </li>
@@ -112,6 +113,7 @@ const SiteDropdown = () => {
               href="/getting-started"
               className=" flex items-center gap-3.5 text-sm font-medium duration-300 ease-in-out hover:text-[#1F2937] lg:text-base"
             >
+              <ExternalLink className="w-6 h-6" />
               Post a Lead
             </Link>
           </li>
@@ -120,6 +122,7 @@ const SiteDropdown = () => {
               href="#contact"
               className=" hove#1F2937] flex items-center gap-3.5 text-sm font-medium duration-300 ease-in-out lg:text-base"
             >
+              <ExternalLink className="w-6 h-6" />
               Service Offered
             </Link>
           </li>
@@ -133,10 +136,14 @@ const SiteDropdown = () => {
                     ? `${user?.me?.profileSlug}.${host}/dashboard`
                     : `/profile-setup`
               }
-              className="flex items-center gap-3.5 text-sm font-medium duration-300 ease-in-out hover:text-[#1F2937] lg:text-base"
+              className="flex items-center gap-3.5 text-sm font-medium duration-300 ease-in-out hover:text-[#1F2937] lg:text-base border-t border-stroke pt-5 dark:border-strokedark"
             >
-              <User className="w-6 h-6" />
-              My Dashboard
+              {user?.me ? (
+                <User className="w-6 h-6" />
+              ) : (
+                <ArrowRightFromLine className="w-6 h-6" />
+              )}
+              {!user?.me ? "Signin" : "My Dashboard"}
             </Link>
           </li>
         </ul>

@@ -19,8 +19,8 @@ const permissionSchema = new Schema<IPermission>(
     profileId: { type: Schema.Types.ObjectId, required: true, ref: "Profile" },
     canBuyProducts: { type: Boolean, default: false },
     canSellProducts: { type: Boolean, default: false },
-    canBuyServices: { type: Boolean, default: false },
-    canSellServices: { type: Boolean, default: false },
+    canBuyServices: { type: Boolean, default: true },
+    canSellServices: { type: Boolean, default: true },
   },
   { timestamps: true } // This adds createdAt and updatedAt fields
 );

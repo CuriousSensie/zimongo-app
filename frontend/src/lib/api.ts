@@ -95,6 +95,43 @@ export class API {
     });
   }
 
+  // LEAD APIS
+  createLead(leadData: any) {
+    return this.instance.post("/lead/create", leadData);
+  }
+
+  getLeads(params?: any) {
+    return this.instance.get("/lead", { params });
+  }
+
+  getMyLeads(params?: any) {
+    return this.instance.get("/lead/my-leads", { params });
+  }
+
+  getLeadById(id: string) {
+    return this.instance.get(`/lead/${id}`);
+  }
+
+  updateLead(id: string, leadData: any) {
+    return this.instance.put(`/lead/${id}`, leadData);
+  }
+
+  deleteLead(id: string) {
+    return this.instance.delete(`/lead/${id}`);
+  }
+
+  updateLeadStatus(id: string, status: string) {
+    return this.instance.patch(`/lead/${id}/status`, { status });
+  }
+
+  uploadLeadFiles(id: string, formData: FormData) {
+    return this.instance.post(`/lead/${id}/upload`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  }
+
 }
 
 const Api = new API();

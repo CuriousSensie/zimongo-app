@@ -14,6 +14,7 @@ import userRouter from "./src/routes/user";
 import LocationProvider from "./src/lib/location";
 import profileRouter from "./src/routes/profile";
 import fileRouter from "./src/routes/file";
+import leadRouter from "./src/routes/lead";
 
 dotenv.config();
 
@@ -81,6 +82,7 @@ app.get("/api/test", async (req, res) => {
 });
 app.use("/api/user", userRouter);
 app.use("/api/profile", profileRouter);
+app.use("/api/lead", leadRouter);
 app.use("/file", fileRouter);
 
 
