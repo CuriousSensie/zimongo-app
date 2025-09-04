@@ -95,12 +95,41 @@ export class API {
     });
   }
 
+  // FILE APIS
+
+  uploadFiles(formData: FormData) {
+    return this.instance.post(`/file/upload`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  }
+
   // LEAD APIS
   createLead(leadData: any) {
     return this.instance.post("/lead/create", leadData);
   }
 
-  getLeads(params?: any) {
+  getLeads(params?: {
+    page?: number;
+    limit?: number;
+    leadIntent?: string;
+    leadType?: string;
+    title?: string;
+    description?: string;
+    status?: string;
+    budget?: string;
+    currency?: string;
+    search?: string;
+    category?: string;
+    minBudget?: string;
+    maxBudget?: string;
+    country?: string;
+    state?: string;
+    city?: string;
+    sortBy?: string;
+    sortOrder?: string;
+  }) {
     return this.instance.get("/lead", { params });
   }
 
@@ -124,12 +153,13 @@ export class API {
     return this.instance.patch(`/lead/${id}/status`, { status });
   }
 
-  uploadFiles(formData: FormData) {
-    return this.instance.post(`/file/upload`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+
+  sendLeadVerificationOTP(leadId: string) {
+    return this.instance.post(`/lead/${leadId}/verify`);
+  }
+
+  verifyLeadOTP(leadId: string, otp: string) {
+    return this.instance.patch(`/lead/${leadId}/verify`, { otp });
   }
 
 }

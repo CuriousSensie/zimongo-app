@@ -50,7 +50,6 @@ export const locationService = {
         { headers }
       );
 
-      console.log(data)
       return data.map((city: any) => ({
         name: city.name,
       }));

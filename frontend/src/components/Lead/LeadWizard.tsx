@@ -164,7 +164,6 @@ const LeadWizard = () => {
         return;
       }
 
-      console.log("Submitting lead data:", validation.data);
       // Submit the lead
       const res = await Api.createLead(validation.data);
 

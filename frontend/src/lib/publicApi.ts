@@ -78,6 +78,30 @@ export class PublicApi {
   verifyVendorResetPasswordToken(token: string) {
     return this.instance.post(`/vendor/reset-password/verify`, { token });
   }
+
+  // BROWSE PAGE apis for LEADS
+   getLeads(params?: {
+    page?: number;
+    limit?: number;
+    leadIntent?: string;
+    leadType?: string;
+    title?: string;
+    description?: string;
+    status?: string;
+    budget?: string;
+    currency?: string;
+    search?: string;
+    category?: string;
+    minBudget?: string;
+    maxBudget?: string;
+    country?: string;
+    state?: string;
+    city?: string;
+    sortBy?: string;
+    sortOrder?: string;
+  }) {
+    return this.instance.get("/lead", { params });
+  }
 }
 
 const publicApi = new PublicApi();

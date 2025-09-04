@@ -84,8 +84,6 @@ const FinalDetailsStep: React.FC<FinalDetailsStepProps> = ({
     }
   };
 
-  console.log(data);
-
   const validateStep = () => {
     return data.location.city && data.location?.state && data.location?.city;
   };
