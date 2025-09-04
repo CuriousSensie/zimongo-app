@@ -1,5 +1,11 @@
 import express, { Response } from "express";
-import Lead, { ILead, LeadIntent, LeadType, ProductInfo, ServiceInfo } from "../models/Lead";
+import Lead, {
+  ILead,
+  LeadIntent,
+  LeadType,
+  ProductInfo,
+  ServiceInfo,
+} from "../models/Lead";
 import User from "../models/User";
 import Profile from "../models/Profile";
 import Authentication from "../middleware/auth";
@@ -8,6 +14,8 @@ import logger from "../config/logger";
 import { fileUpload } from "../middleware/file";
 import { Types } from "mongoose";
 import Permission from "../models/Permission";
+import { generateOtp } from "../lib/otp";
+import { sendGridGuide } from "../lib/email/SendGridGuide";
 
 const leadRouter = express.Router();
 
@@ -121,10 +129,15 @@ leadRouter.post(
 
       // Add type-specific information
       if (leadType === LeadType.PRODUCT) {
-        if (!productInfo?.productFiles || productInfo.productFiles.length === 0) {
+        if (
+          !productInfo?.productFiles ||
+          productInfo.productFiles.length === 0
+        ) {
           return res
             .status(400)
-            .json({ message: "At least one image are required for product leads" });
+            .json({
+              message: "At least one image are required for product leads",
+            });
         }
         leadData.productInfo = productInfo;
       } else {
@@ -159,7 +172,7 @@ leadRouter.post(
   }
 );
 
-// Get all leads with filtering and pagination
+// get all leads for browsing
 leadRouter.get("/", async (req: CustomRequest, res: Response) => {
   try {
     const {
@@ -174,6 +187,7 @@ leadRouter.get("/", async (req: CustomRequest, res: Response) => {
       category,
       minBudget,
       maxBudget,
+      search,
       sortBy = "createdAt",
       sortOrder = "desc",
     } = req.query;
@@ -181,34 +195,59 @@ leadRouter.get("/", async (req: CustomRequest, res: Response) => {
     // Build filter query
     const filter: any = {
       isPublic: true,
-      status: { $ne: "inactive" },
+      status: "active",
     };
 
     // Add filters
+    if (leadIntent && leadIntent !== "all") {
+      if (leadIntent === "buy") filter.leadIntent = LeadIntent.SELL; // convert buy to sell and vv
+      else if (leadIntent === "sell") filter.leadIntent = LeadIntent.BUY;
+    }
     if (leadType) filter.leadType = leadType;
     if (status) filter.status = status;
     if (country) filter["location.country"] = country;
     if (state) filter["location.state"] = state;
     if (city) filter["location.city"] = city;
-    if (leadIntent) filter.leadIntent = leadIntent;
 
-    // Budget range filter
+    // search (title, description, product/service names)
+    if (search && search.trim() !== "") {
+      const searchRegex = { $regex: search, $options: "i" };
+      filter.$and = filter.$and || [];
+      filter.$and.push({
+        $or: [
+          { title: searchRegex },
+          { description: searchRegex },
+          { "productInfo.productName": searchRegex },
+          { "productInfo.productDescription": searchRegex },
+          { "serviceInfo.serviceName": searchRegex },
+          { "serviceInfo.serviceDescription": searchRegex },
+        ],
+      });
+    }
+
+    // budget
     if (minBudget || maxBudget) {
       filter.budget = {};
       if (minBudget) filter.budget.$gte = Number(minBudget);
       if (maxBudget) filter.budget.$lte = Number(maxBudget);
     }
 
-    // Category filter (for both product and service)
-    if (category) {
-      filter.$or = [
-        { "productInfo.productCategory": { $regex: category, $options: "i" } },
-        { "serviceInfo.serviceCategory": { $regex: category, $options: "i" } },
-      ];
+    // Category
+    if (category && category.trim() !== "") {
+      filter.$and = filter.$and || [];
+      filter.$and.push({
+        $or: [
+          { "productInfo.productCategory": { $regex: category, $options: "i" } },
+          { "serviceInfo.serviceCategory": { $regex: category, $options: "i" } },
+        ],
+      });
     }
 
     // Exclude expired leads
-    filter.$or = [{ expiryDate: { $gt: new Date() } }, { expiryDate: null }];
+    filter.$and = filter.$and || [];
+    filter.$and.push({
+      $or: [{ expiryDate: { $gt: new Date() } }, { expiryDate: null }],
+    });
 
     // Pagination
     const pageNum = Math.max(1, Number(page));
@@ -331,41 +370,37 @@ leadRouter.get(
   }
 );
 
-// Get a specific lead by ID
-// leadRouter.get(
-//   "/:id",
-//   async (req: CustomRequest, res: Response) => {
-//     try {
-//       const { id } = req.params;
+// get lead by lead id
+leadRouter.get(
+  "/:id",
+  Authentication.User,
+  async (req: CustomRequest, res: Response) => {
+    try {
+      const { id } = req.params;
 
-//       const lead = await Lead.findById(id)
-//         .populate("userId", "name email")
-//         .populate("profileId", "companyName slug website mobile");
+      const lead = await Lead.findById(id)
+        .populate("userId", "name email")
+        .populate("profileId", "companyName slug website mobile");
 
-//       if (!lead) {
-//         return res.status(404).json({ message: "Lead not found" });
-//       }
+      if (!lead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
 
-//       // Increment view count if lead is public
-//       if (lead.isPublic) {
-//         await lead.incrementViews();
-//       }
+      res.status(200).json({
+        message: "Lead retrieved successfully",
+        data: lead,
+      });
+    } catch (error: any) {
+      logger.error("Error fetching lead:", error);
+      res.status(500).json({
+        message: "Failed to fetch lead",
+        error: error.message,
+      });
+    }
+  }
+);
 
-//       res.status(200).json({
-//         message: "Lead retrieved successfully",
-//         data: lead
-//       });
-
-//     } catch (error: any) {
-//       logger.error("Error fetching lead:", error);
-//       res.status(500).json({
-//         message: "Failed to fetch lead",
-//         error: error.message
-//       });
-//     }
-//   }
-// );
-
+// ? not allowing users to update leads for now
 // Update a lead
 // leadRouter.put(
 //   "/:id",
@@ -426,47 +461,156 @@ leadRouter.get(
 // );
 
 // Delete a lead
-// leadRouter.delete(
-//   "/:id",
-//   Authentication,
-//   async (req: CustomRequest, res: Response) => {
-//     try {
-//       const userId = req.user?.id;
-//       const { id } = req.params;
+leadRouter.delete(
+  "/:id",
+  Authentication.User,
+  async (req: CustomRequest, res: Response) => {
+    try {
+      const userId = req?.context?.user?.id;
+      const { id } = req.params;
 
-//       if (!userId) {
-//         return res.status(401).json({ message: "User not authenticated" });
-//       }
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
 
-//       // Find the lead and check ownership
-//       const lead = await Lead.findById(id);
-//       if (!lead) {
-//         return res.status(404).json({ message: "Lead not found" });
-//       }
+      // Find the lead and check ownership
+      const lead = await Lead.findById(id);
+      if (!lead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
 
-//       if (lead.userId.toString() !== userId) {
-//         return res.status(403).json({ message: "Not authorized to delete this lead" });
-//       }
+      if (lead.userId.toString() !== userId) {
+        return res
+          .status(403)
+          .json({ message: "Not authorized to delete this lead" });
+      }
 
-//       await Lead.findByIdAndDelete(id);
+      await Lead.findByIdAndDelete(id);
 
-//       logger.info(`Lead deleted successfully by user ${userId}`, {
-//         leadId: id
-//       });
+      logger.info(`Lead deleted successfully by user ${userId}`, {
+        leadId: id,
+      });
 
-//       res.status(200).json({
-//         message: "Lead deleted successfully"
-//       });
+      res.status(200).json({
+        message: "Lead deleted successfully",
+      });
+    } catch (error: any) {
+      logger.error("Error deleting lead:", error);
+      res.status(500).json({
+        message: "Failed to delete lead",
+        error: error.message,
+      });
+    }
+  }
+);
 
-//     } catch (error: any) {
-//       logger.error("Error deleting lead:", error);
-//       res.status(500).json({
-//         message: "Failed to delete lead",
-//         error: error.message
-//       });
-//     }
-//   }
-// );
+// send verification otp
+leadRouter.post(
+  "/:id/verify",
+  Authentication.User,
+  async (req: CustomRequest, res: Response) => {
+    try {
+      const userId = req?.context?.user?.id;
+      const { id } = req.params;
+
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      // Find the lead and check ownership
+      const lead = await Lead.findById(id);
+      if (!lead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+
+      if (lead.userId.toString() !== userId) {
+        return res
+          .status(403)
+          .json({ message: "Not authorized to update this lead" });
+      }
+
+      if (lead.isVerified) {
+        return res.status(400).json({ message: "Lead is already verified" });
+      }
+
+      const { otp, expiry } = generateOtp(); //default expiry is 10 min
+      lead.otp = otp;
+      lead.otpExpiry = expiry;
+
+      await sendGridGuide.leadVerificationOtp(req?.context?.user?.email ?? '', lead);
+      await lead.save();
+
+      logger.info(`Lead verification email sent successfully by user ${userId}`, {
+        leadId: id,
+      });
+
+      res.status(200).json({
+        message: "Lead verification email sent.",
+        data: lead,
+      });
+    } catch (error: any) {
+      logger.error("Error verifying lead:", error);
+      res.status(500).json({
+        message: "Failed to verify lead",
+        error: error.message,
+      });
+    }
+  }
+);
+
+// handle verification
+leadRouter.patch(
+  "/:id/verify",
+  Authentication.User,
+  async (req: CustomRequest, res: Response) => {
+    try {
+      const userId = req?.context?.user?.id;
+      const { id } = req.params;
+      const { otp } = req.body;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      // Find the lead and check ownership
+      const lead = await Lead.findById(id);
+      if (!lead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+
+      if (lead.userId.toString() !== userId) {
+        return res
+          .status(403)
+          .json({ message: "Not authorized to update this lead" });
+      }
+
+      if (lead.isVerified) {
+        return res.status(400).json({ message: "Lead is already verified" });
+      }
+
+      if (!lead.otp || lead.otp !== Number(otp)) {
+        return res.status(400).json({ message: "Invalid OTP" });
+      }
+
+      lead.isVerified = true;
+      await lead.save();
+
+      logger.info(`Lead verified successfully by user ${userId}`, {
+        leadId: id,
+      });
+
+      res.status(200).json({
+        message: "Lead verified successfully",
+      });
+    } catch (error: any) {
+      logger.error("Error verifying lead:", error);
+      res.status(500).json({
+        message: "Failed to verify lead",
+        error: error.message,
+      });
+    }
+  }
+);
 
 // Update lead status
 leadRouter.patch(
@@ -496,6 +640,13 @@ leadRouter.patch(
         return res
           .status(403)
           .json({ message: "Not authorized to update this lead" });
+      }
+
+      // handle activation
+      if (!lead.isVerified && status === "active") {
+        return res
+          .status(400)
+          .json({ message: "Lead is not verified and cannot be activated" });
       }
 
       lead.status = status;

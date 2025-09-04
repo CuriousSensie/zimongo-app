@@ -34,7 +34,6 @@ userRouter.post(
       let { email, password, name } = req.body;
 
       if (!email || !password || !name) {
-        console.log(email, password);
         return res.status(400).json({ message: "All fields are required." });
       }
 
@@ -98,7 +97,6 @@ userRouter.post(
         },
       });
     } catch (error) {
-      console.log(error);
       logger.error((error as Error).message);
       return res.status(500).json({ message: (error as Error).message });
     }
@@ -193,7 +191,6 @@ userRouter.post(
           .json({ status: 403, message: "Verify your email first." });
       }
 
-      console.log(req.headers.host);
       // const subdomain = extractSubdomain(window.location.hostname!);
       // console.log(subdomain);
       // if (subdomain && user.profileSlug&& subdomain !== user.profileSlug) {
@@ -307,7 +304,6 @@ userRouter.post("/verify-otp", async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    console.log(otp);
     if (!user.otp || user.otp !== Number(otp)) {
       return res.status(400).json({ message: "Invalid OTP" });
     }

@@ -264,12 +264,6 @@ profileRouter.put(
         profile.userId._id.toString() !==
         (req?.context?.user?._id as Types.ObjectId).toString()
       ) {
-        console.log(
-          profile.userId,
-          typeof profile.userId,
-          req.context?.user._id,
-          typeof req.context?.user._id
-        );
         logger.warn(
           `Unauthorized profile update attempt by user: ${req.context?.user._id}`
         );

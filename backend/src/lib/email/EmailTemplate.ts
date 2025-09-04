@@ -70,6 +70,10 @@ export class EmailTemplate {
     return this.compileTemplate("authOTP", data);
   }
 
+  static getLeadVrificationOTP(data: { otp: number, leadTitle: string }): string {
+    return this.compileTemplate("leadOTP", data);
+  }
+
   //login alert
   static getLoginAlert(data: {
     userName: string;
