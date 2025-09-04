@@ -21,8 +21,13 @@ app.use(
         return callback(null, true);
       }
 
-      // Allow production domains
-      if (origin.includes("zimongo.com") || origin.includes("zimongo-staging.com")) {
+      // Allow production and staging domains
+      if (
+        origin.includes("zimongo.com") ||
+        origin.includes("zimongo-staging.com") ||
+        origin.includes("zimongo-app.vercel.app") ||
+        origin.includes(".vercel.app")
+      ) {
         return callback(null, true);
       }
 

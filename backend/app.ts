@@ -28,7 +28,19 @@ app.use(
       if (!origin) return callback(null, true);
 
       // ONLY ALLOW PRODUCTION and DEV DOMAINS
-      if (origin.includes("localhost") || origin.includes("127.0.0.1") || origin.includes("lvh.me")) {
+      if (
+        origin.includes("localhost") ||
+        origin.includes("127.0.0.1") ||
+        origin.includes("lvh.me")
+      ) {
+        return callback(null, true);
+      }
+
+      // Allow staging domains
+      if (
+        origin.includes("zimongo-app.vercel.app") ||
+        origin.includes(".vercel.app")
+      ) {
         return callback(null, true);
       }
 
@@ -84,7 +96,6 @@ app.use("/api/user", userRouter);
 app.use("/api/profile", profileRouter);
 app.use("/api/lead", leadRouter);
 app.use("/api/file", fileRouter);
-
 
 // Error handling middleware
 app.use(errorHandler);
