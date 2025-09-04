@@ -61,7 +61,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // use trust proxy to get ip
-app.set("trust proxy", true);
+app.set("trust proxy", 1);
 
 app.get("/location", async (req, res) => {
   try {
