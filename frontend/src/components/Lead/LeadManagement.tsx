@@ -217,7 +217,7 @@ const LeadManagement = () => {
   };
 
   const handleVerify = async (leadId: string) => {
-    if (otp.length !== 6) {
+    if (otp?.length !== 6) {
       setError("Please enter a valid 6-digit OTP");
       return;
     }
@@ -330,7 +330,7 @@ const LeadManagement = () => {
           <div className="text-center py-12">
             <p className="text-gray-500 mb-4">Loading leads...</p>
           </div>
-        ) : leads.length === 0 ? (
+        ) : leads?.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-500 mb-4">No leads found</p>
           </div>
@@ -381,7 +381,7 @@ const LeadManagement = () => {
                     </span>
                     <span className="flex items-center gap-1">
                       <Handshake className="h-3 w-3 md:h-4 md:w-4" />{" "}
-                      {lead.interactions.length} interactions
+                      {lead.interactions?.length} interactions
                     </span>
                     {lead.budget && (
                       <span className="flex items-center gap-1">
@@ -475,7 +475,7 @@ const LeadManagement = () => {
                           <Button
                             type="button"
                             onClick={() => handleVerify(lead._id!)}
-                            disabled={otp.length !== 6}
+                            disabled={otp?.length !== 6}
                             className="px-8 py-2 min-w-[120px] w-full"
                           >
                             Submit

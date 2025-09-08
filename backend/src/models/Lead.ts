@@ -56,6 +56,13 @@ interface LeadFile {
   size: number;
 }
 
+interface Interactions {
+  type: string;
+  interactorId: Types.ObjectId;
+  timestamp: Date;
+  content: string;
+}
+
 // Interface for Product Information
 export interface ProductInfo {
   productName: string;
@@ -140,10 +147,15 @@ export interface ILead extends Document {
   
   // Engagement tracking
   views: number;
-  responses: number;
+  upvotes: number;
+  interactions: Interactions[];
   isPublic: boolean;
   isFeatured: boolean;
-  
+
+  isVerified: boolean;
+  otp: number | undefined;
+  otpExpiry: Date | undefined;
+
   // Timestamps
   createdAt: Date;
   updatedAt: Date;
@@ -303,9 +315,18 @@ const LeadSchema = new Schema<ILead>({
   
   // Engagement tracking
   views: { type: Number, default: 0 },
-  responses: { type: Number, default: 0 },
+  upvotes: { type: Number, default: 0 },
+  interactions: [{
+    type: { type: String },
+    interactorId: { type: Schema.Types.ObjectId, ref: "User" },
+    timestamp: { type: Date },
+    content: { type: String }
+  }],
   isPublic: { type: Boolean, default: true },
-  isFeatured: { type: Boolean, default: false }
+  isFeatured: { type: Boolean, default: false },
+  isVerified: { type: Boolean, default: false },
+  otp: { type: Number },
+  otpExpiry: { type: Date }
 }, {
   timestamps: true // Automatically adds createdAt and updatedAt
 });
@@ -341,8 +362,8 @@ LeadSchema.methods.incrementViews = function() {
   return this.save();
 };
 
-LeadSchema.methods.incrementResponses = function() {
-  this.responses += 1;
+LeadSchema.methods.addInteractions = function(interactionData: Interactions) {
+  this.interactions.push(interactionData);
   return this.save();
 };
 

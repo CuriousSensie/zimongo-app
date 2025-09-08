@@ -23,6 +23,7 @@ import {
   Handshake,
 } from "lucide-react";
 import { locationService } from "@/utils/country-state-city";
+import ImageCarousel from "@/components/common/ImageCarousel";
 
 const LeadDetailPage = () => {
   const params = useParams();
@@ -222,7 +223,7 @@ const LeadDetailPage = () => {
           <div className="bg-white rounded-lg border p-4 text-center">
             <Handshake className="w-6 h-6 text-green-600 mx-auto mb-2" />
             <p className="text-2xl font-bold text-slate-900">
-              {lead.interactions.length}
+              {lead.interactions ? lead.interactions?.length : 0}
             </p>
             <p className="text-sm text-slate-600">Interactions</p>
           </div>
@@ -253,7 +254,7 @@ const LeadDetailPage = () => {
             Location Details
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex flex-row justify-between items-center gap-4">
             <div>
               <p className="text-sm text-slate-800 mb-1">Country</p>
               <p className="font-medium text-slate-600">{country}</p>
@@ -292,6 +293,16 @@ const LeadDetailPage = () => {
               <Package className="w-5 h-5 mr-2 text-blue-500" />
               Product Details
             </h2>
+
+            {/* Product Images Carousel */}
+            {lead.productInfo?.productFiles && lead.productInfo.productFiles?.length > 0 && (
+              <div className="mb-6">
+                <ImageCarousel 
+                  images={lead.productInfo.productFiles} 
+                  className="max-w-2xl mx-auto"
+                />
+              </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
@@ -537,12 +548,6 @@ const LeadDetailPage = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-slate-600 mb-1">Expiry Date</p>
-                <p className="font-medium text-slate-900">
-                  {formatDate(lead.expiryDate)}
-                </p>
-              </div>
-              <div>
                 <p className="text-sm text-slate-600 mb-1">Public Listing</p>
                 <p className="font-medium text-slate-900">
                   {lead.isPublic ? "Yes" : "No"}
@@ -552,6 +557,12 @@ const LeadDetailPage = () => {
                 <p className="text-sm text-slate-600 mb-1">Featured</p>
                 <p className="font-medium text-slate-900">
                   {lead.isFeatured ? "Yes" : "No"}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-slate-600 mb-1">Expiry Date</p>
+                <p className="font-medium text-slate-900">
+                  {formatDate(lead.expiryDate)}
                 </p>
               </div>
               <div>

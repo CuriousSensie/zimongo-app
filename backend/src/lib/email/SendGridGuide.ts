@@ -4,6 +4,8 @@ import { EmailTemplate } from "./EmailTemplate";
 import { IUser } from "../../models/User";
 import { SENDGRID_API_KEY } from "../../constant/env";
 import { SENDGRID_FROM_EMAIL } from "../../constant/env";
+import { ILead } from "../../models/Lead";
+import logger from "../../config/logger";
 class SendGridGuide {
   private static instance: SendGridGuide;
 
@@ -31,10 +33,9 @@ class SendGridGuide {
 
     try {
       const res = await sgMail.send(msg);
-      console.log(`✅ Email sent to ${Array.isArray(to) ? to.join(", ") : to}`);
+      logger.info(`✅ Email sent to ${Array.isArray(to) ? to.join(", ") : to}`);
     } catch (error) {
-      console.error(`❌ Failed to send email to ${to}`, error);
-      // throw error;
+      logger.error(`❌ Failed to send email to ${to}`, error);
     }
   }
 
@@ -95,6 +96,15 @@ class SendGridGuide {
     });
 
     await this.sendEmail(user.email, "Resend OTP for Email verification", html);
+  }
+
+  public async leadVerificationOtp(email: string, lead: ILead): Promise<void> {
+    const html = EmailTemplate.getLeadVrificationOTP({
+      otp: lead.otp ?? 0,
+      leadTitle: lead.title,
+    });
+
+    await this.sendEmail(email, "Resend OTP for Email verification", html);
   }
 
   public async emailVerificationSuccess(user: IUser, redirectLink: string): Promise<void> {

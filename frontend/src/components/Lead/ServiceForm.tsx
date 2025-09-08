@@ -216,27 +216,15 @@ const ServiceForm: React.FC<ServiceFormProps> = ({ serviceInfo = {}, onChange })
       </div>
 
       {/* Budget and Compliance */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="flex flex-col gap-2">
-          <Label className="text-slate-700">Budget Estimate</Label>
-          <Input
-            type="number"
-            className="bg-white"
-            value={serviceInfo.budgetEstimate || ""}
-            onChange={(e) => handleChange("budgetEstimate", e.target.value ? Number(e.target.value) : undefined)}
-            placeholder="Estimated budget for the entire service"
-          />
-        </div>
         <div className="flex flex-col gap-2">
           <Label className="text-slate-700">Regulatory or Compliance Needs</Label>
-          <Input
+          <Textarea
             className="bg-white"
             value={serviceInfo.regulatoryOrComplianceNeeds || ""}
             onChange={(e) => handleChange("regulatoryOrComplianceNeeds", e.target.value)}
             placeholder="Any licenses or certifications required"
           />
         </div>
-      </div>
 
       <div className="flex flex-col gap-2">
         <Label className="text-slate-700">Additional Notes</Label>
