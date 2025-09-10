@@ -79,7 +79,9 @@ export class PublicApi {
     return this.instance.post(`/vendor/reset-password/verify`, { token });
   }
 
-  // BROWSE PAGE apis for LEADS
+  // BROWSE PAGE
+  
+  // get active leads with filters + pagination
    getLeads(params?: {
     page?: number;
     limit?: number;
@@ -101,6 +103,12 @@ export class PublicApi {
     sortOrder?: string;
   }) {
     return this.instance.get("/lead", { params });
+  }
+
+  
+  // get lead by id
+  getLeadById(id: string) {
+    return this.instance.get(`/lead/${id}`);
   }
 }
 

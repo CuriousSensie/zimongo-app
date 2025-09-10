@@ -9,9 +9,19 @@ import Image from "next/image";
 interface ImageCarouselProps {
   images: LeadFile[];
   className?: string;
+  // Optional props to control visibility of certain features
+  showThumbnail?: boolean;
+  showIndicators?: boolean;
+  showImageDetails?: boolean;
 }
 
-const ImageCarousel: React.FC<ImageCarouselProps> = ({ images, className = "" }) => {
+const ImageCarousel: React.FC<ImageCarouselProps> = ({
+  images,
+  className = "",
+  showThumbnail = true,
+  showIndicators = true,
+  showImageDetails = false,
+}) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   if (!images || images.length === 0) {
@@ -40,9 +50,9 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images, className = "" })
             alt={images[currentIndex].originalName}
             className="object-contain rounded-lg cursor-pointer hover:opacity-95 transition-opacity"
           />
-          
+
           {/* Navigation Arrows */}
-          {images.length > 1 && (
+          {showIndicators && images.length > 1 && (
             <>
               <button
                 onClick={prevImage}
@@ -51,7 +61,7 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images, className = "" })
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
-              
+
               <button
                 onClick={nextImage}
                 className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-slate-700 rounded-full p-2 shadow-md transition-all duration-200 hover:scale-105"
@@ -71,7 +81,7 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images, className = "" })
         </div>
 
         {/* Thumbnail Navigation */}
-        {images.length > 1 && (
+        {showThumbnail && images.length > 1 && (
           <div className="p-3 bg-white border-t">
             <div className="flex gap-2 overflow-x-auto scrollbar-hide md:justify-center">
               {images.map((image, index) => (
@@ -101,17 +111,19 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images, className = "" })
       </div>
 
       {/* Image Info */}
-      <div className="mt-2 text-center">
-        <p className="text-sm text-slate-600 flex items-center justify-center gap-1">
-          <ImageIcon className="w-4 h-4" />
-          {images[currentIndex].originalName}
-        </p>
-        {images[currentIndex].size && (
-          <p className="text-xs text-slate-500 mt-1">
-            {(images[currentIndex].size / 1024 / 1024).toFixed(2)} MB
+      {showImageDetails && (
+        <div className="mt-2 text-center">
+          <p className="text-sm text-slate-600 flex items-center justify-center gap-1">
+            <ImageIcon className="w-4 h-4" />
+            {images[currentIndex].originalName}
           </p>
-        )}
-      </div>
+          {images[currentIndex].size && (
+            <p className="text-xs text-slate-500 mt-1">
+              {(images[currentIndex].size / 1024 / 1024).toFixed(2)} MB
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 };

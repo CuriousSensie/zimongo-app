@@ -300,6 +300,7 @@ const LeadDetailPage = () => {
                 <ImageCarousel 
                   images={lead.productInfo.productFiles} 
                   className="max-w-2xl mx-auto"
+                  showImageDetails={true}
                 />
               </div>
             )}

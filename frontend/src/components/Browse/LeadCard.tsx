@@ -161,7 +161,7 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
         </div>
 
         <div className=" flex md:flex-col gap-2 w-full md:w-[15vw] mt-4 md:mt-0">
-          <Link href={`/leads/${lead._id}`} className="flex-1">
+          <Link href={`/browse/${lead._id}`} className="flex-1">
             <Button className="w-full" size="sm">
               View Details
             </Button>
@@ -276,7 +276,7 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
         </div>
 
         <div className="flex gap-2 mt-4">
-          <Link href={`/leads/${lead._id}`} className="flex-1">
+          <Link href={`/browse/${lead._id}`} className="flex-1">
             <Button size="sm" className="w-full">
               View Details
             </Button>

@@ -366,7 +366,7 @@ const LeadManagement = () => {
                     </Badge>
                   </div>
 
-                  <p className="text-gray-600 mb-3 max-w-[400px] truncate text-slate-600">
+                  <p className="text-gray-600 mb-3 max-w-[400px] truncate">
                     {lead.description}
                   </p>
 
