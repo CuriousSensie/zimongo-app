@@ -150,7 +150,11 @@ const BrowseLeadDetailPage = () => {
   };
 
   const handleContact = () => {
-    toast.info("Contact feature coming soon!");
+    if (lead?.profileId && (lead.profileId as any)?.slug) {
+      window.location.href = `/profiles/${(lead.profileId as any).slug}`;
+    } else {
+      toast.info("Contact information not available!");
+    }
   };
 
   if (loading) {

@@ -95,8 +95,11 @@ export class API {
     });
   }
 
-  // FILE APIS
+  getProfileBySlug(slug: string) {
+    return this.instance.get(`/profile/slug/${slug}`);
+  }
 
+  // FILE APIS
   uploadFiles(formData: FormData) {
     return this.instance.post(`/file/upload`, formData, {
       headers: {
@@ -133,7 +136,16 @@ export class API {
     return this.instance.get("/lead", { params });
   }
 
-  getMyLeads(params?: any) {
+  getMyLeads(params?: {
+    page?: number;
+    limit?: number;
+    leadIntent?: string;
+    leadType?: string;
+    status?: string;
+    search?: string;
+    sortBy?: string;
+    sortOrder?: string;
+  }) {
     return this.instance.get("/lead/my-leads", { params });
   }
 
@@ -160,6 +172,13 @@ export class API {
 
   verifyLeadOTP(leadId: string, otp: string) {
     return this.instance.patch(`/lead/${leadId}/verify`, { otp });
+  }
+
+  getLeadsByProfileId(profileId: string, params?: {
+    page?: number,
+    limit?: number
+  }) {
+    return this.instance.get(`/lead/profile/${profileId}`, { params });
   }
 
 }

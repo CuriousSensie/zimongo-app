@@ -272,8 +272,8 @@ leadRouter.get(
         limit = 10,
         search,
         leadIntent,
-        status,
         leadType,
+        status,
         sortBy = "createdAt",
         sortOrder = "desc",
       } = req.query;
@@ -329,6 +329,40 @@ leadRouter.get(
         message: "Failed to fetch user leads",
         error: error.message,
       });
+    }
+  }
+);
+
+// get leads by profile ID
+leadRouter.get(
+  "/profile/:profileId",
+  Authentication.User,
+  async (req: CustomRequest, res: Response) => {
+    try {
+      const { profileId } = req.params;
+      const { limit = 10, page = 1 } = req.query;
+
+      if (!profileId) {
+        return res.status(400).json({ msg: "Profile ID is required." });
+      }
+
+      const leads = await Lead.find({
+        profileId,
+        status: "active",
+        isPublic: true,
+      })
+        .populate("profileId", "companyName slug")
+        .sort({ createdAt: -1 })
+        .limit(Number(limit))
+        .skip((Number(page) - 1) * Number(limit));
+
+      res.status(200).json({
+        msg: "Leads fetched successfully.",
+        data: leads,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ msg: "Internal server error." });
     }
   }
 );

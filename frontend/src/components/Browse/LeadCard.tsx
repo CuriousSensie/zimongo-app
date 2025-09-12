@@ -166,9 +166,17 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
               View Details
             </Button>
           </Link>
-          <Button variant="outline" size="sm">
-            Contact
-          </Button>
+          {lead.profileId && (lead.profileId as any)?.slug ? (
+            <Link href={`/profiles/${(lead.profileId as any).slug}`}>
+              <Button variant="outline" size="sm">
+                Contact
+              </Button>
+            </Link>
+          ) : (
+            <Button variant="outline" size="sm" disabled>
+              Contact
+            </Button>
+          )}
         </div>
       </div>
     );
@@ -281,9 +289,17 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
               View Details
             </Button>
           </Link>
-          <Button variant="outline" size="sm">
-            Contact
-          </Button>
+          {lead.profileId && (lead.profileId as any)?.slug ? (
+            <Link href={`/profiles/${(lead.profileId as any).slug}`}>
+              <Button variant="outline" size="sm">
+                Contact
+              </Button>
+            </Link>
+          ) : (
+            <Button variant="outline" size="sm" disabled>
+              Contact
+            </Button>
+          )}
         </div>
       </div>
     </div>

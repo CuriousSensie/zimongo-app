@@ -183,6 +183,37 @@ profileRouter.get(
   }
 );
 
+// get profile using slug
+profileRouter.get(
+  "/slug/:slug",
+  Authentication.User,
+  async (req: CustomRequest, res: Response) => {
+    try {
+      const slug = req.params.slug;
+
+      if (!slug) {
+        logger.error("Slug is required to get a profile.");
+        return res
+          .status(400)
+          .json({ msg: "Invalid attempt to get a profile." });
+      }
+
+      // const profile = await Profile.findOne({ slug, status: "active" });
+      const profile = await Profile.findOne({ slug });
+
+      if (!profile) {
+        logger.error(`Profile not found for slug: ${slug}`);
+        return res.status(404).json({ msg: "Profile not found." });
+      }
+
+      res.status(200).json({ msg: "Profile found.", data: profile });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ msg: "Internal server error." });
+    }
+  }
+);
+
 // get profile using profileId
 profileRouter.get(
   "/:id",
