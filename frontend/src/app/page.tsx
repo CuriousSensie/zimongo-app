@@ -16,6 +16,6 @@ export default async function Home() {
 const getServerSideProps = async () => {
   const session = await getServerSession();
   if (session == null) {
-    // return redirect("api/auth/signin");
+    return redirect("api/auth/signin");
   }
 };

@@ -6,7 +6,6 @@ import FullTextLogo from "../Logos/FullTextLogo";
 import SiteDropdown from "../HeaderDropdown/SiteDropdown";
 
 const SiteHeader = ({ className }: { className?: string }) => {
-  const user = useUser();
 
   return (
     // custom styling from parent (make sure it doesnt conflict)

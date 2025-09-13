@@ -13,7 +13,6 @@ import useUser from '@/hooks/useUser';
 const ProfilePage = () => {
   const params = useParams();
   const slug = params.slug as string;
-  const user = useUser();
   
   const [profile, setProfile] = useState<IProfile | null>(null);
   const [recentLeads, setRecentLeads] = useState<ILead[]>([]);

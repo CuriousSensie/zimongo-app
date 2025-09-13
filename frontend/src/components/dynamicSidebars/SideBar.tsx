@@ -25,7 +25,7 @@ interface SidebarProps {
 const Sidebar = ({ sidebarOpen, setSidebarOpen, items }: SidebarProps) => {
   const pathname = usePathname();
   const trigger = useRef<any>(null);
-  const { me } = useUser();
+  const { me, isLoading} = useUser();
   const isAdmin = me?.isAdmin;
 
   // TODO: Replace with real data

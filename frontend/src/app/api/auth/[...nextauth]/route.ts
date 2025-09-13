@@ -155,7 +155,11 @@ const authOptions: AuthOptions = {
     }),
   ],
   debug: true,
-  session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 }, // ! session age = 30 days
+  session: { 
+    strategy: "jwt", 
+    maxAge: 30 * 24 * 60 * 60, // ! session age = 30 days
+    updateAge: 24 * 60 * 60, // Update session every 24 hours
+  },
   pages: {
     signIn: "/signin",
   },

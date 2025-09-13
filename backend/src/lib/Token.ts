@@ -25,7 +25,7 @@ class Token {
     tokenType = TOKEN_TYPE.login,
     rememberMe?: boolean
   ): string {
-    const expiresIn = rememberMe ? "24h" : "12h";
+    const expiresIn = "30d";
     return jwt.sign({ ...payload, tokenType }, secret, { expiresIn });
   }
   generateSignupToken(payload: Record<string, unknown>): string {
