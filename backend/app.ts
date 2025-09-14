@@ -44,7 +44,12 @@ app.use(
         return callback(null, true);
       }
 
-      // TODO: Allow production domains
+      // Allow production domains
+      if (
+        origin.includes("zimongo.com")
+      ) {
+        return callback(null, true);
+      }
 
       // Allow storage app domains
 
