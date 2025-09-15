@@ -7,7 +7,7 @@
     "merge-swagger": "ts-node src/lib/swagger/merge-swagger.ts",
     "generate-swaggerPath": "ts-node src/lib/swagger/SwaggerAutoGen.ts",
     "generate-swaggerSchema": "ts-node src/lib/swagger/GenerateSchemas.ts",
-    "start": "node dist/backend/app.js",
+    "start": "node dist/app.js",
     "dev": "nodemon app.ts",
     "build": "tsc && cpx \"src/**/*.hbs\" dist/backend/src"
   },
