@@ -5,7 +5,6 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { LeadType } from "@/types/lead";
-import { LeadIntent } from "../LeadWizard";
 
 interface BasicDetailsStepProps {
   data: any;

@@ -5,7 +5,6 @@ import toggleUserOnline from "../service/onlineUser";
 
 export const activeOnlineUser = new Set();
 
-
 export class SocketServer {
   io: Server;
 
@@ -17,11 +16,23 @@ export class SocketServer {
           if (!origin) return callback(null, true);
 
           // Allow localhost and subdomain requests
-          if (origin.includes("localhost") || origin.includes("127.0.0.1") || origin.includes("lvh.me")) {
+          if (
+            origin.includes("localhost") ||
+            origin.includes("127.0.0.1") ||
+            origin.includes("lvh.me")
+          ) {
             return callback(null, true);
           }
 
-          // Allow production domains
+          // Allow production and staging domains
+          if (
+            origin.includes("zimongo.com") ||
+            origin.includes("zimongo-staging.com") ||
+            origin.includes("zimongo-app.vercel.app") ||
+            origin.includes(".vercel.app")
+          ) {
+            return callback(null, true);
+          }
 
           // Allow storage app domains
           if (origin.includes("amazonaws.com")) {

@@ -64,9 +64,6 @@ const DropdownUser = () => {
           <span className="block text-sm font-medium text-[#1F2937] dark:text-white">
             {user?.me ? user?.me.name : "user"}
           </span>
-          <span className="block text-xs text-[#6B7280]">
-            {user?.me?.isAdmin ? "Admin" : user?.me?.name}
-          </span>
         </span>
 
         <div className="h-[5vh] w-[5vh] overflow-hidden rounded-full border border-stroke shadow-lg">

@@ -21,11 +21,17 @@ export default function ClientRoot({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setTimeout(() => setLoading(false), 1000);
+    // Reduce loading time and make it more responsive
+    const timer = setTimeout(() => setLoading(false), 300);
+    return () => clearTimeout(timer);
   }, []);
 
   return (
-    <SessionProvider session={session}>
+    <SessionProvider 
+      session={session}
+      // refetchInterval={5 * 60} // Refetch session every 5 minutes
+      // refetchOnWindowFocus={false} // Refetch when window gets focus
+    >
       <ToastContainer style={{ zIndex: 99999 }} />
       <ThemeContextProvider>
         <ChakraProvider value={defaultSystem}>

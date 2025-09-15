@@ -17,9 +17,8 @@ interface SidebarProps {
 }
 
 const UserSidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
-  const { me } = useUser() || {};
+  const { me, isLoading, isAdmin } = useUser() || {};
 
-  // Fix: Handle both string and object cases for company
   const userId = me?._id
 
   const trigger = useRef<any>(null);
@@ -28,10 +27,6 @@ const UserSidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   const [sidebarExpanded, setSidebarExpanded] = useState(
     storedSidebarExpanded === null ? false : storedSidebarExpanded === "true",
   );
-
-  //setting isAdmin to true or false based on the user role
-  const isAdmin = me?.isAdmin || false;
-  //const isAdmin = false;
 
   useEffect(() => {
     const clickHandler = ({ target }: MouseEvent) => {
@@ -66,6 +61,31 @@ const UserSidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
     }
   }, [sidebarExpanded]);
 
+  // Show loading skeleton while session is loading
+  if (isLoading) {
+    return (
+      <aside
+        ref={sidebar}
+        className={`absolute left-0 top-0 z-9999 flex h-screen w-[60%] max-w-65 flex-col overflow-y-hidden bg-white duration-300 ease-linear dark:bg-white lg:static lg:w-[18%] lg:translate-x-0 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="no-scrollbar flex flex-grow flex-col overflow-y-auto duration-300 ease-linear">
+          <nav className="p-4">
+            <div className="animate-pulse space-y-4">
+              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+            </div>
+          </nav>
+        </div>
+      </aside>
+    );
+  }
+
+  // Don't render if no user data and not loading
   if (!me) return null;
 
   return (

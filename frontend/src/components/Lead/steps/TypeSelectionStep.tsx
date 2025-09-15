@@ -1,8 +1,7 @@
 "use client";
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { LeadType } from "@/types/lead";
-import { LeadIntent } from "../LeadWizard";
+import { LeadIntent, LeadType } from "@/types/lead";
 
 interface TypeSelectionStepProps {
   leadType: LeadType;
