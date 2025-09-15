@@ -134,15 +134,15 @@
 }
 
 .apexcharts-xaxistooltip-bottom:after {
-  @apply !border-b-gray dark:!border-b-meta-4;
+  @apply  dark:!border-b-meta-4;
 }
 
 .apexcharts-xaxistooltip-bottom:before {
-  @apply !border-b-gray dark:!border-b-meta-4;
+  @apply  dark:!border-b-meta-4;
 }
 
 .apexcharts-xaxistooltip-bottom {
-  @apply !rounded !border-none !bg-gray !text-xs !font-medium !text-black dark:!text-white;
+  @apply !rounded !border-none !text-xs !font-medium !text-black dark:!text-white;
 }
 
 .apexcharts-tooltip-series-group {
@@ -442,4 +442,14 @@ input[type="search"]::-webkit-search-cancel-button {
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Hide scrollbar for image carousel thumbnails */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }

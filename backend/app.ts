@@ -28,11 +28,28 @@ app.use(
       if (!origin) return callback(null, true);
 
       // ONLY ALLOW PRODUCTION and DEV DOMAINS
-      if (origin.includes("localhost") || origin.includes("127.0.0.1") || origin.includes("lvh.me")) {
+      if (
+        origin.includes("localhost") ||
+        origin.includes("127.0.0.1") ||
+        origin.includes("lvh.me")
+      ) {
         return callback(null, true);
       }
 
-      // TODO: Allow production domains
+      // Allow staging domains
+      if (
+        origin.includes("zimongo-app.vercel.app") ||
+        origin.includes(".vercel.app")
+      ) {
+        return callback(null, true);
+      }
+
+      // Allow production domains
+      if (
+        origin.includes("zimongo.com")
+      ) {
+        return callback(null, true);
+      }
 
       // Allow storage app domains
 
@@ -49,7 +66,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // use trust proxy to get ip
-app.set("trust proxy", true);
+app.set("trust proxy", 1);
 
 app.get("/location", async (req, res) => {
   try {
@@ -84,7 +101,6 @@ app.use("/api/user", userRouter);
 app.use("/api/profile", profileRouter);
 app.use("/api/lead", leadRouter);
 app.use("/api/file", fileRouter);
-
 
 // Error handling middleware
 app.use(errorHandler);

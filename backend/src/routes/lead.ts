@@ -102,11 +102,11 @@ leadRouter.post(
         return res.status(404).json({ message: "User permission not found" });
       }
 
-      if (!permssion.canSellProducts && leadType === LeadType.PRODUCT) {
+      if (!permssion.canSellProducts && leadType === LeadType.PRODUCT && leadIntent === "sell") {
         return res
           .status(403)
           .json({ message: "User does not have permission to sell products." });
-      } else if (!permssion.canSellServices && leadType === LeadType.SERVICE) {
+      } else if (!permssion.canSellServices && leadType === LeadType.SERVICE && leadIntent === "sell") {
         return res
           .status(403)
           .json({ message: "User does not have permission to sell services." });
@@ -309,8 +309,8 @@ leadRouter.get(
         limit = 10,
         search,
         leadIntent,
-        status,
         leadType,
+        status,
         sortBy = "createdAt",
         sortOrder = "desc",
       } = req.query;
@@ -370,7 +370,41 @@ leadRouter.get(
   }
 );
 
-// get lead by lead id
+// get leads by profile ID
+leadRouter.get(
+  "/profile/:profileId",
+  Authentication.User,
+  async (req: CustomRequest, res: Response) => {
+    try {
+      const { profileId } = req.params;
+      const { limit = 10, page = 1 } = req.query;
+
+      if (!profileId) {
+        return res.status(400).json({ msg: "Profile ID is required." });
+      }
+
+      const leads = await Lead.find({
+        profileId,
+        status: "active",
+        isPublic: true,
+      })
+        .populate("profileId", "companyName slug")
+        .sort({ createdAt: -1 })
+        .limit(Number(limit))
+        .skip((Number(page) - 1) * Number(limit));
+
+      res.status(200).json({
+        msg: "Leads fetched successfully.",
+        data: leads,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ msg: "Internal server error." });
+    }
+  }
+);
+
+// Get a specific lead by ID (authenticated route)
 leadRouter.get(
   "/:id",
   Authentication.User,
@@ -388,13 +422,13 @@ leadRouter.get(
 
       res.status(200).json({
         message: "Lead retrieved successfully",
-        data: lead,
+        data: lead
       });
     } catch (error: any) {
       logger.error("Error fetching lead:", error);
       res.status(500).json({
         message: "Failed to fetch lead",
-        error: error.message,
+        error: error.message
       });
     }
   }
@@ -498,6 +532,114 @@ leadRouter.delete(
       logger.error("Error deleting lead:", error);
       res.status(500).json({
         message: "Failed to delete lead",
+        error: error.message,
+      });
+    }
+  }
+);
+
+// send verification otp
+leadRouter.post(
+  "/:id/verify",
+  Authentication.User,
+  async (req: CustomRequest, res: Response) => {
+    try {
+      const userId = req?.context?.user?.id;
+      const { id } = req.params;
+
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      // Find the lead and check ownership
+      const lead = await Lead.findById(id);
+      if (!lead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+
+      if (lead.userId.toString() !== userId) {
+        return res
+          .status(403)
+          .json({ message: "Not authorized to update this lead" });
+      }
+
+      if (lead.isVerified) {
+        return res.status(400).json({ message: "Lead is already verified" });
+      }
+
+      const { otp, expiry } = generateOtp(); //default expiry is 10 min
+      lead.otp = otp;
+      lead.otpExpiry = expiry;
+
+      await sendGridGuide.leadVerificationOtp(req?.context?.user?.email ?? '', lead);
+      await lead.save();
+
+      logger.info(`Lead verification email sent successfully by user ${userId}`, {
+        leadId: id,
+      });
+
+      res.status(200).json({
+        message: "Lead verification email sent.",
+        data: lead,
+      });
+    } catch (error: any) {
+      logger.error("Error verifying lead:", error);
+      res.status(500).json({
+        message: "Failed to verify lead",
+        error: error.message,
+      });
+    }
+  }
+);
+
+// handle verification
+leadRouter.patch(
+  "/:id/verify",
+  Authentication.User,
+  async (req: CustomRequest, res: Response) => {
+    try {
+      const userId = req?.context?.user?.id;
+      const { id } = req.params;
+      const { otp } = req.body;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      // Find the lead and check ownership
+      const lead = await Lead.findById(id);
+      if (!lead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+
+      if (lead.userId.toString() !== userId) {
+        return res
+          .status(403)
+          .json({ message: "Not authorized to update this lead" });
+      }
+
+      if (lead.isVerified) {
+        return res.status(400).json({ message: "Lead is already verified" });
+      }
+
+      if (!lead.otp || lead.otp !== Number(otp)) {
+        return res.status(400).json({ message: "Invalid OTP" });
+      }
+
+      lead.isVerified = true;
+      await lead.save();
+
+      logger.info(`Lead verified successfully by user ${userId}`, {
+        leadId: id,
+      });
+
+      res.status(200).json({
+        message: "Lead verified successfully",
+      });
+    } catch (error: any) {
+      logger.error("Error verifying lead:", error);
+      res.status(500).json({
+        message: "Failed to verify lead",
         error: error.message,
       });
     }

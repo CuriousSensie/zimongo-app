@@ -27,4 +27,5 @@ export interface ISessionData {
 
 export interface IExtendedSession extends Session {
   data: ISessionData;
+  status: "authenticated" | "unauthenticated" | "loading";
 }

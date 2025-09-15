@@ -1,20 +1,17 @@
-import { getServerSession } from "next-auth";
+import { getServerSession, Session } from "next-auth";
 import ClientRoot from "./layout.client";
 import "@/css/satoshi.css";
-import { Inter } from "next/font/google";
 import "@/css/style.css";
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-});
-
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const session = await getServerSession();
-
+export default async function RootLayout({
+  session,
+  children,
+}: {
+  session: Session | null;
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang="en">
       <body suppressHydrationWarning={true}>
         <ClientRoot session={session}>{children}</ClientRoot>
       </body>

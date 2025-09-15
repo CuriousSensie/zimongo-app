@@ -59,7 +59,6 @@ async function handleSubdomainRouting(
   url: URL,
   req: NextRequest
 ) {
-  console.log("handlesubdomainrouteing");
   const token = await getToken({
     req,
     secret: process.env.NEXTAUTH_SECRET,

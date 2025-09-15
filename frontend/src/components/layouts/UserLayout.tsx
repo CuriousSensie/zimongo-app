@@ -1,7 +1,6 @@
 "use client";
 import React, { useState } from "react";
 import useUser from "@/hooks/useUser";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import UserSidebar from "../dynamicSidebars/UserSidebar";
 import UserHeader from "../Headers/UserHeader";
@@ -12,8 +11,7 @@ export default function UserLayout({
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const user = useUser();
-  const { status } = useSession();
+  const { me, isLoading } = useUser();
   const router = useRouter();
 
   return (
@@ -36,7 +34,7 @@ export default function UserLayout({
           {/* <!-- ===== Main Content Start ===== --> */}
           <main className="bg-zimongo-bg mt-[8vh]">
             <div className="">
-              {status === "loading" || !user ? (
+              {!me || isLoading ? (
                 <div className="">
                   <h2 className="text-center text-2xl ">
                     Setting up your session

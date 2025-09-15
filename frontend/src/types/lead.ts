@@ -54,6 +54,13 @@ export interface LeadFile {
   size: number;
 }
 
+export interface Interactions {
+  type: string;
+  interactorId: string;
+  timestamp: Date;
+  content: string;
+}
+
 // Interface for Product Information
 export interface ProductInfo {
   productName: string;
@@ -112,7 +119,7 @@ export interface ILead {
   _id?: string;
   userId: string;
   profileId?: string;
-  LeadIntent: LeadIntent;
+  leadIntent: LeadIntent;
   leadType: LeadType;
   title: string;
   description: string;
@@ -139,9 +146,14 @@ export interface ILead {
   
   // Engagement tracking
   views: number;
-  responses: number;
+  upvotes: number;
+  interactions: Interactions[];
   isPublic: boolean;
   isFeatured: boolean;
+
+  isVerified: boolean;
+  otp: number;
+  otpExpiry: string;
   
   // Timestamps
   createdAt: string;

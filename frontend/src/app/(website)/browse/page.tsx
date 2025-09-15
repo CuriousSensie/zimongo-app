@@ -1,9 +1,14 @@
-import React from 'react'
+import React from 'react';
+import BrowsePage from '@/components/Browse/BrowsePage';
+import SiteHeader from '@/components/Headers/SiteHeader';
 
 const Browse = () => {
   return (
-    <div>Browse</div>
-  )
-}
+    <div className="min-h-screen">
+      <SiteHeader />
+      <BrowsePage />
+    </div>
+  );
+};
 
 export default Browse;

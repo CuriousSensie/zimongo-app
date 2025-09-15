@@ -64,14 +64,11 @@ const DropdownUser = () => {
           <span className="block text-sm font-medium text-[#1F2937] dark:text-white">
             {user?.me ? user?.me.name : "user"}
           </span>
-          <span className="block text-xs text-[#6B7280]">
-            {user?.me?.isAdmin ? "Admin" : user?.me?.name}
-          </span>
         </span>
 
         <div className="h-[5vh] w-[5vh] overflow-hidden rounded-full border border-stroke shadow-lg">
           <Image
-            src={user.me?.picture.path ? `${NEXT_PUBLIC_S3_BASE_URL}/${user.me.picture.path}` : Avatar}
+            src={user.me?.picture?.path ? `${NEXT_PUBLIC_S3_BASE_URL}/${user.me.picture?.path}` : Avatar}
             alt="Avatar"
             height={42}
             width={42}

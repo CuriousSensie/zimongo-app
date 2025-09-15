@@ -113,7 +113,7 @@ const OnboardingSteps = ({
   });
   useEffect(() => {
     if (user.me?._id) formData.userId = user.me._id;
-  }, [user?.me]);
+  }, [user]);
 
   // location handling
   const [countries, setCountries] = useState([]);
@@ -126,7 +126,6 @@ const OnboardingSteps = ({
     const getuserLocation = async () => {
       try {
         const countryData = await locationService.getCountries();
-        console.log(countryData);
         setCountries(countryData);
       } catch (error) {
         console.error("Error fetching countries: ", (error as Error).message);
@@ -183,12 +182,11 @@ const OnboardingSteps = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    console.log("Form submitted:", formData);
 
     try {
       const form = new FormData();
 
-      const { logoFile, ...rest} = formData; // append without logoFile
+      const { logoFile, ...rest } = formData; // append without logoFile
       form.append("data", JSON.stringify(rest));
 
       if (logoFile instanceof File) {
@@ -206,7 +204,13 @@ const OnboardingSteps = ({
             onClick: () => window.location.reload(),
           },
         });
-        router.replace(`${response.data.slug}.${host}/dashboard`);
+        if (host.includes("localhost") || host.includes("127.0.0.1")) {
+          router.replace(`http://localhost:3000/dashboard`);
+        } else {
+          router.replace(
+            `https://${response.data.data.slug}.${host}/dashboard`
+          );
+        }
       } else {
         toast.error(`${response.data.msg}`, {
           position: "top-center",

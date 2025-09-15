@@ -79,7 +79,7 @@ const SignUp: React.FC = () => {
           newErrors[error.path[0] as keyof typeof newErrors] = error.message;
         });
         setErrors(newErrors);
-        console.log("Validation errors:", newErrors);
+        console.error("Validation errors:", newErrors);
       }
     }
   };

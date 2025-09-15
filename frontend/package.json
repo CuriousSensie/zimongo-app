@@ -21,6 +21,7 @@
     "clsx": "^2.1.1",
     "cobe": "^0.6.4",
     "country-state-city": "^3.2.1",
+    "date-fns": "^4.1.0",
     "lucide-react": "^0.539.0",
     "motion": "^12.23.12",
     "next": "15.4.6",
