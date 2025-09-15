@@ -110,30 +110,23 @@ async function handleProxyRequest(
       headers,
       body,
     });
-    
-    // For no manual encoding decoding
-    const newHeaders = new Headers(response.headers);
 
-    const newResponse = new NextResponse(response.body, {
+    // Get the response data
+    const responseData = await response.text();
+
+    // Create a new response with the same status and headers
+    const newResponse = new NextResponse(responseData, {
       status: response.status,
-      headers: newHeaders, 
+      statusText: response.statusText,
     });
 
-
-    // For manual encoding decoding
-    // Get the response data
-    // const responseData = await response.text();
-
-    // // Create a new response with the same status and headers
-    // const newResponse = new NextResponse(responseData, {
-    //   status: response.status,
-    //   statusText: response.statusText,
-    // });
-
-    // // Copy headers from the backend response
-    // response.headers.forEach((value, key) => {
-    //   newResponse.headers.set(key, value);
-    // });
+    // Copy headers from the backend response
+    response.headers.forEach((value, key) => {
+      // strip content length and encoding to handle decompression issue
+      const lower = key.toLowerCase();
+      if (["content-encoding", "content-length"].includes(lower)) return;
+      newResponse.headers.set(key, value);
+    });
 
     return newResponse;
   } catch (error) {
