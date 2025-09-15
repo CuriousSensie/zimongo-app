@@ -9,7 +9,7 @@
     "generate-swaggerSchema": "ts-node src/lib/swagger/GenerateSchemas.ts",
     "start": "node dist/app.js",
     "dev": "nodemon app.ts",
-    "build": "tsc && cpx \"src/**/*.hbs\" dist/backend/src"
+    "build": "tsc && cpx \"src/**/*.hbs\" dist/src"
   },
   "keywords": [],
   "author": "hasnaatkhalid",
