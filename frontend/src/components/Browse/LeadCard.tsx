@@ -191,8 +191,8 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
           {lead.productInfo?.productFiles &&
           lead.productInfo.productFiles.length > 0 ? (
             <ZoomableImage
-              src={`${NEXT_PUBLIC_S3_BASE_URL}/${lead.productInfo.productFiles[0].path}`}
-              alt={lead.productInfo.productFiles[0].originalName}
+              src={`${NEXT_PUBLIC_S3_BASE_URL}/${lead?.productInfo?.productFiles[0]?.path}`}
+              alt={lead.productInfo?.productFiles[0]?.originalName}
               className="w-full h-full object-cover"
             />
           ) : (

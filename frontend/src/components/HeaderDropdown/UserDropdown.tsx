@@ -68,7 +68,7 @@ const DropdownUser = () => {
 
         <div className="h-[5vh] w-[5vh] overflow-hidden rounded-full border border-stroke shadow-lg">
           <Image
-            src={user.me?.picture.path ? `${NEXT_PUBLIC_S3_BASE_URL}/${user.me.picture.path}` : Avatar}
+            src={user.me?.picture?.path ? `${NEXT_PUBLIC_S3_BASE_URL}/${user.me.picture?.path}` : Avatar}
             alt="Avatar"
             height={42}
             width={42}
