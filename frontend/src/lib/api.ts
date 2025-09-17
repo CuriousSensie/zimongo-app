@@ -153,6 +153,10 @@ export class API {
     return this.instance.get(`/lead/${id}`);
   }
 
+  incrementLeadView(id: string) {
+    return this.instance.post(`/lead/${id}/view`);
+  }
+
   updateLead(id: string, leadData: any) {
     return this.instance.put(`/lead/${id}`, leadData);
   }

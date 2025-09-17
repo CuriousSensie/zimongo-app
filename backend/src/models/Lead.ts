@@ -159,6 +159,11 @@ export interface ILead extends Document {
   // Timestamps
   createdAt: Date;
   updatedAt: Date;
+
+  // Instance Methods
+  incrementViews(): Promise<ILead>;
+  addInteractions(interactionData: Interactions): Promise<ILead>;
+  isExpired(): boolean;
 }
 
 // Product Info Schema

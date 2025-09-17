@@ -19,6 +19,7 @@ import { NEXT_PUBLIC_S3_BASE_URL } from "@/constant/env";
 import Image from "next/image";
 import ZoomableImage from "../common/ZoomableImage";
 import { FaMoneyBill } from "react-icons/fa6";
+import { useViewTracking } from "@/hooks/useViewTracking";
 
 interface LeadCardProps {
   lead: ILead;
@@ -26,7 +27,12 @@ interface LeadCardProps {
 }
 
 const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
-  // TODO: increment view count when component mount
+  // Track views when at least 50% of the card is visible
+  const { ref: viewTrackingRef } = useViewTracking({ 
+    leadId: lead._id as string,
+    threshold: 0.5,
+    debounceMs: 1000
+  });
 
   const formatBudget = (budget?: number, currency = "USD") => {
     if (!budget) return "Not specified";
@@ -97,7 +103,10 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
   // Service cards are shown in list view
   if (lead.leadType === LeadType.SERVICE) {
     return (
-      <div className="flex flex-col md:flex-row mx-auto w-full gap-4 justify-between items-center bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-colors p-6">
+      <div 
+        ref={viewTrackingRef}
+        className="flex flex-col md:flex-row mx-auto w-full gap-4 justify-between items-center bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-colors p-6"
+      >
         <div className="flex flex-col items-start justify-between">
           <div className="flex items-center gap-3 mb-3">
             {lead.profileId && (
@@ -184,7 +193,10 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
 
   // Product cards
   return (
-    <div className="flex flex-col justify-between bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200 hover:shadow-md">
+    <div 
+      ref={viewTrackingRef}
+      className="flex flex-col justify-between bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200 hover:shadow-md"
+    >
       {/* Product Image */}
       {lead.leadType === LeadType.PRODUCT && (
         <div className="relative h-48 bg-gray-100 rounded-t-lg overflow-hidden">

@@ -28,6 +28,7 @@ import ImageCarousel from "@/components/common/ImageCarousel";
 import SiteHeader from "@/components/Headers/SiteHeader";
 import publicApi from "@/lib/publicApi";
 import Api from "@/lib/api";
+import { markLeadAsViewed } from "@/hooks/useViewTracking";
 
 const BrowseLeadDetailPage = () => {
   const params = useParams();
@@ -48,6 +49,8 @@ const BrowseLeadDetailPage = () => {
         
         if (response.status === 200) {
           setLead(response.data.data);
+          // Increment view count when lead details are successfully loaded
+          await markLeadAsViewed(leadId);
         }
       } catch (error) {
         console.error("Error fetching lead:", error);

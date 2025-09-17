@@ -434,6 +434,39 @@ leadRouter.get(
   }
 );
 
+// Increment view count for a lead
+leadRouter.post(
+  "/:id/view",
+  async (req: CustomRequest, res: Response) => {
+    try {
+      const { id } = req.params;
+
+      if (!Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ message: "Invalid lead ID" });
+      }
+
+      const lead = await Lead.findById(id);
+      if (!lead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+
+      // Increment the view count
+      await lead.incrementViews();
+
+      res.status(200).json({
+        message: "View count incremented successfully",
+        views: lead.views
+      });
+    } catch (error: any) {
+      logger.error("Error incrementing view count:", error);
+      res.status(500).json({
+        message: "Failed to increment view count",
+        error: error.message
+      });
+    }
+  }
+);
+
 // ? not allowing users to update leads for now
 // Update a lead
 // leadRouter.put(
