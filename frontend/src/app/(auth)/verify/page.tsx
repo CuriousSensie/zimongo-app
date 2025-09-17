@@ -64,7 +64,7 @@ const VerifyOTP = () => {
           router.push("/");
         } else {
           if (subdomain) {
-            router.push("/dashboard");
+            router.push("/");
           } else {
             router.push("/");
           }

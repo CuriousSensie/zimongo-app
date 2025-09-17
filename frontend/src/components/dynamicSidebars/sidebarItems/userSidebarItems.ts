@@ -19,7 +19,7 @@ import { FaShieldAlt } from "react-icons/fa";
 export const getUserSidebarItems = (profileId: string) => [
   {
     label: "Dashboard",
-    href: "/dashboard",
+    href: "/",
     icon: FaGaugeHigh,
     separator: false,
     isTitle: false,

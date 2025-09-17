@@ -75,7 +75,7 @@ const SiteDropdown = () => {
         <div className="h-[5vh] w-[5vh] overflow-hidden rounded-full border border-stroke shadow-lg">
           <Image
             src={
-              user?.me?.picture.path
+              user?.me?.picture?.path
                 ? `${NEXT_PUBLIC_S3_BASE_URL}/${user?.me?.picture?.path}`
                 : Avatar
             }
@@ -138,11 +138,11 @@ const SiteDropdown = () => {
                   ? "/signin"
                   : user?.me?.profileSlug &&
                       (host.includes("localhost") || host.includes("127.0.0.1"))
-                    ? `http://${user?.me?.profileSlug}.${host}/dashboard`
+                    ? `http://${user?.me?.profileSlug}.${host}/`
                     : user?.me?.profileSlug &&
                         !host.includes("localhost") &&
                         !host.includes("127.0.0.1")
-                      ? `https://${user?.me?.profileSlug}.${host}/dashboard`
+                      ? `https://${user?.me?.profileSlug}.${host}/`
                       : `/profile-setup`
               }
               className="flex items-center gap-3.5 text-sm font-medium duration-300 ease-in-out hover:text-[#1F2937] lg:text-base border-t border-stroke pt-5 dark:border-strokedark md:border-t-0 md:pt-0"

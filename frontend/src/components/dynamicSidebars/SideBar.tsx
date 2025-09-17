@@ -70,7 +70,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, items }: SidebarProps) => {
         </button>
         
         <Link
-          href="/dashboard"
+          href="/"
           className="flex items-center gap-2 text-2xl font-bold text-white"
         >
           <FullTextLogo />
