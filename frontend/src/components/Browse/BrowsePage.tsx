@@ -1,16 +1,13 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { Search, Filter, Grid, List } from "lucide-react";
+import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
 import { LeadIntent, LeadType, ILead } from "@/types/lead";
-import Api from "@/lib/api";
 import { toast } from "sonner";
 import LeadCard from "./LeadCard";
 import FilterPanel from "./FilterPanel";
-import { Badge } from "@/components/ui/badge";
 import publicApi from "@/lib/publicApi";
 
 interface BrowseFilters {
