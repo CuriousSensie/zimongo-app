@@ -16,6 +16,7 @@ import { Types } from "mongoose";
 import Permission from "../models/Permission";
 import { generateOtp } from "../lib/otp";
 import { sendGridGuide } from "../lib/email/SendGridGuide";
+import SavedLead from "../models/SavedLead";
 
 const leadRouter = express.Router();
 
@@ -406,7 +407,7 @@ leadRouter.get(
 
 // Get a specific lead by ID (authenticated route)
 leadRouter.get(
-  "/:id",
+  "/lead-by-id/:id",
   Authentication.User,
   async (req: CustomRequest, res: Response) => {
     try {
@@ -428,6 +429,39 @@ leadRouter.get(
       logger.error("Error fetching lead:", error);
       res.status(500).json({
         message: "Failed to fetch lead",
+        error: error.message
+      });
+    }
+  }
+);
+
+// Increment view count for a lead
+leadRouter.post(
+  "/:id/view",
+  async (req: CustomRequest, res: Response) => {
+    try {
+      const { id } = req.params;
+
+      if (!Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ message: "Invalid lead ID" });
+      }
+
+      const lead = await Lead.findById(id);
+      if (!lead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+
+      // Increment the view count
+      await lead.incrementViews();
+
+      res.status(200).json({
+        message: "View count incremented successfully",
+        views: lead.views
+      });
+    } catch (error: any) {
+      logger.error("Error incrementing view count:", error);
+      res.status(500).json({
+        message: "Failed to increment view count",
         error: error.message
       });
     }
@@ -874,6 +908,190 @@ leadRouter.post(
       res.status(500).json({
         message: "Failed to upload files",
         error: error.message,
+      });
+    }
+  }
+);
+
+// Save a lead
+leadRouter.post(
+  "/save/:leadId",
+  Authentication.User,
+  async (req: CustomRequest, res: Response) => {
+    try {
+      const userId = req.context?.user?.id;
+      const { leadId } = req.params;
+
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      // Check if user has a profile
+      const user = await User.findById(userId);
+      if (!user?.profileSlug) {
+        return res.status(403).json({ 
+          message: "Only users with profiles can save leads. Please complete your profile setup first." 
+        });
+      }
+
+      // Check if lead exists
+      const lead = await Lead.findById(leadId);
+      if (!lead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+
+      if (!lead.isPublic || lead.status !== "active") {
+        return res.status(403).json({ message: "Lead is not available for saving" });
+      }
+
+      // Check if already saved
+      const existingSave = await SavedLead.findOne({ userId, leadId });
+      if (existingSave) {
+        return res.status(400).json({ message: "Lead already saved" });
+      }
+
+      // Save the lead
+      const savedLead = new SavedLead({
+        userId,
+        leadId
+      });
+      await savedLead.save();
+
+      // Add interaction
+      await lead.addInteractions({
+        type: "save",
+        interactorId: new Types.ObjectId(userId),
+        timestamp: new Date(),
+        content: "Lead saved to dashboard"
+      });
+
+      res.status(201).json({
+        message: "Lead saved successfully",
+        data: savedLead
+      });
+    } catch (error: any) {
+      logger.error("Error saving lead:", error);
+      res.status(500).json({
+        message: "Failed to save lead",
+        error: error.message
+      });
+    }
+  }
+);
+
+// Unsave a lead
+leadRouter.delete(
+  "/unsave/:leadId",
+  Authentication.User,
+  async (req: CustomRequest, res: Response) => {
+    try {
+      const userId = req.context?.user?.id;
+      const { leadId } = req.params;
+
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      // Remove the saved lead
+      const deletedSave = await SavedLead.findOneAndDelete({ userId, leadId });
+      if (!deletedSave) {
+        return res.status(404).json({ message: "Saved lead not found" });
+      }
+
+      res.status(200).json({
+        message: "Lead unsaved successfully"
+      });
+    } catch (error: any) {
+      logger.error("Error unsaving lead:", error);
+      res.status(500).json({
+        message: "Failed to unsave lead",
+        error: error.message
+      });
+    }
+  }
+);
+
+// Get user's saved leads
+leadRouter.get(
+  "/saved",
+  Authentication.User,
+  async (req: CustomRequest, res: Response) => {
+    try {
+      const userId = req.context?.user?.id;
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const skip = (page - 1) * limit;
+
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      // Get saved leads with populated lead data
+      const savedLeads = await SavedLead.find({ userId })
+        .populate({
+          path: "leadId",
+          match: { status: "active", isPublic: true }, // Only show active public leads
+          populate: {
+            path: "profileId",
+            select: "companyName slug"
+          }
+        })
+        .sort({ savedAt: -1 })
+        .skip(skip)
+        .limit(limit);
+
+      // Filter out saved leads where the lead was deleted or is no longer available
+      const validSavedLeads = savedLeads.filter(savedLead => savedLead.leadId);
+
+      // Get total count
+      const totalSavedLeads = await SavedLead.countDocuments({ userId });
+
+      res.status(200).json({
+        message: "Saved leads retrieved successfully",
+        data: {
+          savedLeads: validSavedLeads,
+          pagination: {
+            currentPage: page,
+            totalPages: Math.ceil(totalSavedLeads / limit),
+            totalSavedLeads,
+            hasNext: page * limit < totalSavedLeads,
+            hasPrev: page > 1
+          }
+        }
+      });
+    } catch (error: any) {
+      logger.error("Error fetching saved leads:", error);
+      res.status(500).json({
+        message: "Failed to fetch saved leads",
+        error: error.message
+      });
+    }
+  }
+);
+
+// Check if a lead is saved by the current user
+leadRouter.get(
+  "/is-saved/:leadId",
+  Authentication.User,
+  async (req: CustomRequest, res: Response) => {
+    try {
+      const userId = req.context?.user?.id;
+      const { leadId } = req.params;
+
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const savedLead = await SavedLead.findOne({ userId, leadId });
+      
+      res.status(200).json({
+        isSaved: !!savedLead
+      });
+    } catch (error: any) {
+      logger.error("Error checking saved status:", error);
+      res.status(500).json({
+        message: "Failed to check saved status",
+        error: error.message
       });
     }
   }

@@ -1,9 +1,12 @@
+import UserLayout from '@/components/layouts/UserLayout'
 import React from 'react'
 
-const UserProfile = () => {
+const UserDashboard = () => {
   return (
-    <div>UserProfile</div>
+    <UserLayout >
+      <div></div>
+    </UserLayout>
   )
 }
 
-export default UserProfile
+export default UserDashboard;

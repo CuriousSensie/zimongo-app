@@ -1,11 +1,9 @@
-// import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import HomePage from "@/components/HomePage/HomePage";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-// import Dashboard from "./cards/dashboard";
 
 export default async function Home() {
-  const res = await getServerSideProps();
+  // const res = await getServerSideProps();
   return (
     <>
       <HomePage />

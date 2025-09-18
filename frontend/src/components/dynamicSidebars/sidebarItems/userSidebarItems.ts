@@ -1,4 +1,4 @@
-import { Paperclip, UserCog, ShoppingBasket } from "lucide-react";
+import { Paperclip, UserCog, ShoppingBasket, Bookmark } from "lucide-react";
 import {
   FaStore,
   FaChartLine,
@@ -19,7 +19,7 @@ import { FaShieldAlt } from "react-icons/fa";
 export const getUserSidebarItems = (profileId: string) => [
   {
     label: "Dashboard",
-    href: "/dashboard",
+    href: "/",
     icon: FaGaugeHigh,
     separator: false,
     isTitle: false,
@@ -35,6 +35,13 @@ export const getUserSidebarItems = (profileId: string) => [
     label: "Mange Leads",
     href: `/leads`,
     icon: Paperclip,
+    separator: false,
+    isTitle: false,
+  },
+  {
+    label: "Saved Leads",
+    href: `/saved-leads`,
+    icon: Bookmark,
     separator: false,
     isTitle: false,
   },

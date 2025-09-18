@@ -15,7 +15,7 @@ import { FaShieldAlt } from "react-icons/fa";
 export const AdminSidebarItems = [
   {
     label: "Dashboard",
-    href: "/dashboard",
+    href: "/",
     icon: FaGaugeHigh,
     separator: false,
     isTitle: false,

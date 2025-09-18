@@ -205,10 +205,10 @@ const OnboardingSteps = ({
           },
         });
         if (host.includes("localhost") || host.includes("127.0.0.1")) {
-          router.replace(`http://localhost:3000/dashboard`);
+          router.replace(`http://localhost:3000/`);
         } else {
           router.replace(
-            `https://${response.data.data.slug}.${host}/dashboard`
+            `https://${response.data.data.slug}.${host}/`
           );
         }
       } else {

@@ -138,11 +138,11 @@ const SiteDropdown = () => {
                   ? "/signin"
                   : user?.me?.profileSlug &&
                       (host.includes("localhost") || host.includes("127.0.0.1"))
-                    ? `http://${user?.me?.profileSlug}.${host}/dashboard`
+                    ? `http://${user?.me?.profileSlug}.${host}/`
                     : user?.me?.profileSlug &&
                         !host.includes("localhost") &&
                         !host.includes("127.0.0.1")
-                      ? `https://${user?.me?.profileSlug}.${host}/dashboard`
+                      ? `https://${user?.me?.profileSlug}.${host}/`
                       : `/profile-setup`
               }
               className="flex items-center gap-3.5 text-sm font-medium duration-300 ease-in-out hover:text-[#1F2937] lg:text-base border-t border-stroke pt-5 dark:border-strokedark md:border-t-0 md:pt-0"

@@ -55,7 +55,7 @@ const UserHeader = ({
             </span>
           </button>
           {/* Logo comes from sidebar in large screens */}
-          <Link href="/dashboard" className="lg:hidden">
+          <Link href="/" className="lg:hidden">
             <FullTextLogo />
           </Link>
         </div>
