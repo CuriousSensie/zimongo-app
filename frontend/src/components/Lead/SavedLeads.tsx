@@ -185,15 +185,10 @@ const SavedLeadsComp: React.FC = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto p-4">
       <div className="mb-8">
-        <div className="flex items-center gap-2 mb-2">
-          <Bookmark className="h-6 w-6 text-blue-600" />
-          <h1 className="text-3xl font-bold text-gray-900">Saved Leads</h1>
-        </div>
-        <p className="text-gray-600">
-          Manage your saved leads and find opportunities you're interested in.
-        </p>
+          <h1 className="text-2xl font-bold text-gray-900">Saved Leads</h1>
+          <p className="text-gray-600">View and Manage Leads you have saved</p>
       </div>
 
       {savedLeads.length === 0 ? (

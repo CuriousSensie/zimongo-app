@@ -66,6 +66,15 @@ export class API {
     );
   }
 
+  //  USER APIS
+  getUserSettings() {
+    return this.instance.get("/user/settings");
+  }
+
+  updateUserSettings(is2FA: boolean) {
+    return this.instance.patch("/user/settings", { is2FA });
+  }
+
   getUserLocation() {
     return this.instance.get("/user/location");
   }

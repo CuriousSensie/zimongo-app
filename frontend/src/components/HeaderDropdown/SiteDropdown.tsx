@@ -2,7 +2,6 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
-import { useToast } from "@chakra-ui/toast";
 import useUser from "@/hooks/useUser";
 import {
   ArrowLeftFromLine,
@@ -15,6 +14,7 @@ import { extractSubdomain } from "@/utils/subdomain";
 import Image from "next/image";
 import Avatar from "../../../public/avatar.png";
 import { NEXT_PUBLIC_S3_BASE_URL } from "@/constant/env";
+import { toast } from "sonner";
 
 const SiteDropdown = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -23,7 +23,6 @@ const SiteDropdown = () => {
   const trigger = useRef<any>(null);
   const dropdown = useRef<any>(null);
   const user = useUser();
-  const toast = useToast();
 
   // close on click outside
   useEffect(() => {
@@ -170,11 +169,12 @@ const SiteDropdown = () => {
                 window.location.href = callbackUrl;
               });
 
-              toast({
-                title: "You have been Logout",
-                status: "info",
-                isClosable: true,
+              toast.success("You have been Logout", {
                 duration: 3000,
+                action: {
+                  label: "Close",
+                  onClick: () => toast.dismiss(),
+                },
               });
             }}
             className="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-[#1F2937] lg:text-base"
