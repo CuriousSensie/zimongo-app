@@ -63,7 +63,7 @@ const BrowseLeadDetailPage = () => {
           if (session?.user?.accessToken) {
             try {
               const savedResponse = await Api.checkIfLeadIsSaved(leadId);
-              setIsSaved(savedResponse.isSaved);
+              setIsSaved(savedResponse.data.isSaved);
             } catch (error) {
               // Silently fail - user might not be authenticated
             }

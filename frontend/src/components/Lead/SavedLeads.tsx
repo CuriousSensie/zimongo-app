@@ -65,7 +65,15 @@ const SavedLeadsComp: React.FC = () => {
         setSavedLeads(savedLeads);
         setPagination(pagination);
       } catch (error: any) {
-        toast.error("Failed to fetch saved leads");
+        toast.error("Failed to fetch saved leads", {
+          position: "top-center",
+          richColors: true,
+          description: (error as Error).message,
+          action: {
+            label: "Retry",
+            onClick: () => fetchSavedLeads(page),
+          },
+        });
       } finally {
         setLoading(false);
       }
@@ -86,10 +94,25 @@ const SavedLeadsComp: React.FC = () => {
       setSavedLeads((prev) =>
         prev.filter((saved) => saved.leadId._id !== leadId)
       );
-      toast.success("Lead removed from saved");
+      toast.success("Lead removed from saved", {
+        position: "top-center",
+        richColors: true,
+        action: {
+          label: "Close",
+          onClick: () => window.location.reload(),
+        },
+      });
     } catch (error: any) {
       const message = error?.response?.data?.message || "Failed to unsave lead";
-      toast.error(message);
+      toast.error(message, {
+        position: "top-center",
+        richColors: true,
+        description: (error as Error).message,
+        action: {
+          label: "Retry",
+          onClick: () => handleUnsave(leadId),
+        },
+      });
     } finally {
       setUnsaving(null);
     }
@@ -259,7 +282,9 @@ const SavedLeadsComp: React.FC = () => {
                         target="_blank"
                         href={`https://${hostWithoutSubdomain}/browse/${lead._id}`}
                       >
-                        <Button size="sm" className="w-full">View Details</Button>
+                        <Button size="sm" className="w-full">
+                          View Details
+                        </Button>
                       </Link>
 
                       <Button
@@ -279,7 +304,11 @@ const SavedLeadsComp: React.FC = () => {
                           href={`https://${hostWithoutSubdomain}/profiles/${(lead.profileId as any).slug}`}
                           className="w-full md:w-1/2 lg:w-auto"
                         >
-                          <Button variant="outline" size="sm" className="w-full">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                          >
                             Contact
                           </Button>
                         </Link>
