@@ -42,7 +42,6 @@ export const useViewTracking = ({
         await publicApi.incrementLeadView(id);
         viewedLeads.add(id); // Mark as viewed
         debounceMap.delete(id); // Clean up timeout reference
-        console.log(`View incremented for lead: ${id}`);
       } catch (error) {
         console.error('Failed to increment view:', error);
         debounceMap.delete(id); // Clean up even on error
@@ -105,7 +104,6 @@ export const markLeadAsViewed = async (leadId: string) => {
   try {
     await publicApi.incrementLeadView(leadId);
     viewedLeads.add(leadId);
-    console.log(`Detail view incremented for lead: ${leadId}`);
   } catch (error) {
     console.error('Failed to increment detail view:', error);
   }

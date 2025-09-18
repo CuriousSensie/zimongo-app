@@ -62,7 +62,28 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
 
   const handleSaveToggle = async () => {
     if (!isAuthenticated) {
-      toast.error("Please sign in to save leads");
+      toast.warning("Cannot save lead", {
+        description: "Pease login to save leads",
+        position: "top-center",
+        richColors: true,
+        action: {
+          label: "Close",
+          onClick: () => window.location.reload(),
+        },
+      });
+      return;
+    }
+
+    if (!me?.profileSlug || me?.profileSlug?.length === 0) {
+      toast.warning("Cannot save lead", {
+        description: "Please create a profile to save leads",
+        position: "top-center",
+        richColors: true,
+        action: {
+          label: "Close",
+          onClick: () => window.location.reload(),
+        },
+      });
       return;
     }
 
@@ -73,16 +94,41 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
       if (isSaved) {
         await Api.unsaveLead(lead._id);
         setIsSaved(false);
-        toast.success("Lead removed from saved");
+        toast.success("Lead removed from saved", {
+          duration: 3000,
+          position: "top-center",
+          richColors: true,
+          action: {
+            label: "Close",
+            onClick: () => window.location.reload(),
+          },
+        });
       } else {
         await Api.saveLead(lead._id);
         setIsSaved(true);
-        toast.success("Lead saved to your dashboard");
+        toast.success("Lead saved to your dashboard", {
+          duration: 3000,
+          position: "top-center",
+          richColors: true,
+          action: {
+            label: "Close",
+            onClick: () => window.location.reload(),
+          },
+        });
       }
     } catch (error: any) {
+      console.error("Error saving lead:", error);
       const errorMessage =
         error.response?.data?.message || "Failed to save lead";
-      toast.error(errorMessage);
+      toast.error(errorMessage, {
+        duration: 5000,
+        position: "top-center",
+        richColors: true,
+        action: {
+          label: "Close",
+          onClick: () => window.location.reload(),
+        },
+      });
     } finally {
       setIsLoading(false);
     }
