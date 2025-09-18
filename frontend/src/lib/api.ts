@@ -150,7 +150,7 @@ export class API {
   }
 
   getLeadById(id: string) {
-    return this.instance.get(`/lead/${id}`);
+    return this.instance.get(`/lead/lead-by-id/${id}`);
   }
 
   incrementLeadView(id: string) {
@@ -183,6 +183,22 @@ export class API {
     limit?: number
   }) {
     return this.instance.get(`/lead/profile/${profileId}`, { params });
+  }
+
+  saveLead(leadId: string) {
+    return this.instance.post(`/lead/save/${leadId}`);
+  }
+
+  unsaveLead(leadId: string) {
+    return this.instance.delete(`/lead/unsave/${leadId}`);
+  }
+
+  getSavedLeads(params?: { page?: number; limit?: number }) {
+    return this.instance.get("/lead/saved", { params });
+  }
+
+  checkIfLeadIsSaved(leadId: string) {
+    return this.instance.get(`/lead/is-saved/${leadId}`);
   }
 
 }

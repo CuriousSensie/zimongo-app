@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ILead } from "@/types/lead";
 import { toast } from "sonner";
+import { useSession } from "next-auth/react";
+import { ISessionData } from "@/types/session";
 import {
   ArrowLeft,
   MapPin,
@@ -22,6 +24,8 @@ import {
   MessageCircle,
   Phone,
   Mail,
+  Bookmark,
+  BookmarkCheck,
 } from "lucide-react";
 import { locationService } from "@/utils/country-state-city";
 import ImageCarousel from "@/components/common/ImageCarousel";
@@ -38,6 +42,9 @@ const BrowseLeadDetailPage = () => {
   const [country, setCountry] = useState<string | null>(null);
   const [state, setState] = useState<string | null>(null);
   const [isLiked, setIsLiked] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
+  const { data: session } = useSession() as { data: ISessionData | null };
 
   const leadId = params.leadId as string;
 
@@ -51,6 +58,16 @@ const BrowseLeadDetailPage = () => {
           setLead(response.data.data);
           // Increment view count when lead details are successfully loaded
           await markLeadAsViewed(leadId);
+          
+          // Check if lead is saved by current user
+          if (session?.user?.accessToken) {
+            try {
+              const savedResponse = await Api.checkIfLeadIsSaved(leadId);
+              setIsSaved(savedResponse.isSaved);
+            } catch (error) {
+              // Silently fail - user might not be authenticated
+            }
+          }
         }
       } catch (error) {
         console.error("Error fetching lead:", error);
@@ -150,6 +167,33 @@ const BrowseLeadDetailPage = () => {
   const handleLike = () => {
     setIsLiked(!isLiked);
     toast.success(isLiked ? "Removed from favorites" : "Added to favorites");
+  };
+
+  const handleSaveToggle = async () => {
+    if (!session?.user?.accessToken) {
+      toast.error("Please sign in to save leads");
+      return;
+    }
+
+    if (!leadId) return;
+
+    setSaveLoading(true);
+    try {
+      if (isSaved) {
+        await Api.unsaveLead(leadId);
+        setIsSaved(false);
+        toast.success("Lead removed from saved");
+      } else {
+        await Api.saveLead(leadId);
+        setIsSaved(true);
+        toast.success("Lead saved to your dashboard");
+      }
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || "Failed to save lead";
+      toast.error(errorMessage);
+    } finally {
+      setSaveLoading(false);
+    }
   };
 
   const handleContact = () => {
@@ -642,10 +686,25 @@ const BrowseLeadDetailPage = () => {
               <p className="text-sm text-slate-600 mb-4">
                 Get in touch with the seller to discuss this opportunity.
               </p>
-              <Button onClick={handleContact} className="w-full bg-blue-600 hover:bg-blue-700">
-                <MessageCircle className="w-4 h-4 mr-2" />
-                Contact Now
-              </Button>
+              <div className="flex gap-3">
+                <Button
+                  onClick={handleSaveToggle}
+                  disabled={saveLoading}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  {isSaved ? (
+                    <BookmarkCheck className="w-4 h-4" />
+                  ) : (
+                    <Bookmark className="w-4 h-4" />
+                  )}
+                  {saveLoading ? "Saving..." : (isSaved ? "Saved" : "Save")}
+                </Button>
+                <Button onClick={handleContact} className="flex-1 bg-blue-600 hover:bg-blue-700">
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  Contact Now
+                </Button>
+              </div>
             </div>
           </div>
         </div>

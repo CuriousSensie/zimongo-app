@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ILead, LeadIntent, LeadType } from "@/types/lead";
+import { ILead, LeadType } from "@/types/lead";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,14 +12,20 @@ import {
   Package,
   Wrench,
   Clock,
+  MessageCircle,
+  ExternalLink,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 import { NEXT_PUBLIC_S3_BASE_URL } from "@/constant/env";
-import Image from "next/image";
 import ZoomableImage from "../common/ZoomableImage";
 import { FaMoneyBill } from "react-icons/fa6";
 import { useViewTracking } from "@/hooks/useViewTracking";
+import { useState, useEffect } from "react";
+import Api from "@/lib/api";
+import { toast } from "sonner";
+import { Bookmark, BookmarkCheck } from "lucide-react";
+import useUser from "@/hooks/useUser";
 
 interface LeadCardProps {
   lead: ILead;
@@ -27,12 +33,60 @@ interface LeadCardProps {
 }
 
 const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
+  const { me, isAuthenticated } = useUser();
+  const [isSaved, setIsSaved] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
   // Track views when at least 50% of the card is visible
-  const { ref: viewTrackingRef } = useViewTracking({ 
+  const { ref: viewTrackingRef } = useViewTracking({
     leadId: lead._id as string,
     threshold: 0.5,
-    debounceMs: 1000
+    debounceMs: 1000,
   });
+
+  // Check if lead is saved when component mounts
+  useEffect(() => {
+    const checkSavedStatus = async () => {
+      if (isAuthenticated && lead._id) {
+        try {
+          const response = await Api.checkIfLeadIsSaved(lead._id);
+          setIsSaved(response.data.isSaved);
+        } catch (error) {
+          // Silently fail - user might not be authenticated
+        }
+      }
+    };
+
+    checkSavedStatus();
+  }, [isAuthenticated, lead._id]);
+
+  const handleSaveToggle = async () => {
+    if (!isAuthenticated) {
+      toast.error("Please sign in to save leads");
+      return;
+    }
+
+    if (!lead._id) return;
+
+    setIsLoading(true);
+    try {
+      if (isSaved) {
+        await Api.unsaveLead(lead._id);
+        setIsSaved(false);
+        toast.success("Lead removed from saved");
+      } else {
+        await Api.saveLead(lead._id);
+        setIsSaved(true);
+        toast.success("Lead saved to your dashboard");
+      }
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message || "Failed to save lead";
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const formatBudget = (budget?: number, currency = "USD") => {
     if (!budget) return "Not specified";
@@ -103,7 +157,7 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
   // Service cards are shown in list view
   if (lead.leadType === LeadType.SERVICE) {
     return (
-      <div 
+      <div
         ref={viewTrackingRef}
         className="flex flex-col md:flex-row mx-auto w-full gap-4 justify-between items-center bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-colors p-6"
       >
@@ -169,15 +223,21 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
           </div>
         </div>
 
-        <div className=" flex md:flex-col gap-2 w-full md:w-[15vw] mt-4 md:mt-0">
-          <Link href={`/browse/${lead._id}`} className="flex-1">
+        <div className="flex flex-row md:flex-col gap-2 w-full md:w-[15vw] mt-4 md:mt-0 justify-center">
+          <Link href={`/browse/${lead._id}`} className="flex gap-1">
             <Button className="w-full" size="sm">
+              <ExternalLink className="h-4 w-4" />
               View Details
             </Button>
           </Link>
           {lead.profileId && (lead.profileId as any)?.slug ? (
             <Link href={`/profiles/${(lead.profileId as any).slug}`}>
-              <Button variant="outline" size="sm">
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-blue-500 hover:bg-blue-600 text-white hover:text-white w-full flex gap-2"
+              >
+                <MessageCircle className="h-4 w-4" />
                 Contact
               </Button>
             </Link>
@@ -186,6 +246,20 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
               Contact
             </Button>
           )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSaveToggle}
+            disabled={isLoading}
+            className="flex items-center gap-1"
+          >
+            {isSaved ? (
+              <BookmarkCheck className="h-4 w-4" />
+            ) : (
+              <Bookmark className="h-4 w-4" />
+            )}
+            {isSaved ? "Saved" : "Save"}
+          </Button>
         </div>
       </div>
     );
@@ -193,7 +267,7 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
 
   // Product cards
   return (
-    <div 
+    <div
       ref={viewTrackingRef}
       className="flex flex-col justify-between bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200 hover:shadow-md"
     >
@@ -303,7 +377,12 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
           </Link>
           {lead.profileId && (lead.profileId as any)?.slug ? (
             <Link href={`/profiles/${(lead.profileId as any).slug}`}>
-              <Button variant="outline" size="sm">
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-blue-500 hover:bg-blue-600 text-white hover:text-white w-full"
+              >
+                <MessageCircle className="h-4 w-4 mr-2" />
                 Contact
               </Button>
             </Link>
@@ -312,6 +391,19 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
               Contact
             </Button>
           )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSaveToggle}
+            disabled={isLoading}
+            className="flex items-center gap-1"
+          >
+            {isSaved ? (
+              <BookmarkCheck className="h-4 w-4" />
+            ) : (
+              <Bookmark className="h-4 w-4" />
+            )}
+          </Button>
         </div>
       </div>
     </div>
