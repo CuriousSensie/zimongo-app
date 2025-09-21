@@ -16,7 +16,6 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import Link from "next/link";
 import { NEXT_PUBLIC_S3_BASE_URL } from "@/constant/env";
 import ZoomableImage from "../common/ZoomableImage";
 import { FaMoneyBill } from "react-icons/fa6";
@@ -26,6 +25,7 @@ import Api from "@/lib/api";
 import { toast } from "sonner";
 import { Bookmark, BookmarkCheck, ThumbsUp } from "lucide-react";
 import useUser from "@/hooks/useUser";
+import { useRouter } from "next/navigation";
 
 interface LeadCardProps {
   lead: ILead;
@@ -33,6 +33,7 @@ interface LeadCardProps {
 }
 
 const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
+  const router = useRouter();
   const { me, isAuthenticated } = useUser();
   const [isSaved, setIsSaved] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -137,9 +138,28 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
   };
 
   const handleContactClick = async () => {
+    if (!isAuthenticated) {
+      toast.warning("Cannot view profile details", {
+        description: "Please login to view profile details",
+        position: "top-center",
+        richColors: true,
+        action: {
+          label: "Close",
+          onClick: () => window.location.reload(),
+        },
+      });
+      return;
+    }
+
     if (isAuthenticated && lead._id) {
       try {
-        await Api.trackInteraction(lead._id, "view_profile", "User viewed your profile through this Lead.");
+        await Api.trackInteraction(
+          lead._id,
+          "view_profile",
+          "User viewed your profile through this Lead."
+        );
+
+        router.push(`/profiles/${(lead.profileId as any).slug}`);
       } catch (error) {
         console.error("Error tracking contact interaction:", error);
       }
@@ -147,9 +167,27 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
   };
 
   const handleViewDetailsClick = async () => {
+    if (!isAuthenticated) {
+      toast.warning("Cannot view lead details", {
+        description: "Please login to view lead details",
+        position: "top-center",
+        richColors: true,
+        action: {
+          label: "Close",
+          onClick: () => window.location.reload(),
+        },
+      });
+      return;
+    }
+
     if (isAuthenticated && lead._id) {
       try {
-        await Api.trackInteraction(lead._id, "view_details", "User viewed the details of this lead.");
+        await Api.trackInteraction(
+          lead._id,
+          "view_details",
+          "User viewed the details of this lead."
+        );
+        router.push(`/browse/${lead._id}`);
       } catch (error) {
         console.error("Error tracking view details interaction:", error);
       }
@@ -169,9 +207,13 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
     if (!lead._id || hasUpvoted) return;
 
     try {
-      await Api.trackInteraction(lead._id, "upvote", "This lead got a new upvote.");
+      await Api.trackInteraction(
+        lead._id,
+        "upvote",
+        "This lead got a new upvote."
+      );
       setHasUpvoted(true);
-      setUpvoteCount(prev => prev + 1);
+      setUpvoteCount((prev) => prev + 1);
       toast.success("Lead upvoted!", {
         duration: 2000,
         position: "top-center",
@@ -326,14 +368,17 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
         </div>
 
         <div className="flex flex-row md:flex-col gap-2 w-full md:w-[15vw] mt-4 md:mt-0 justify-center">
-          <Link href={`/browse/${lead._id}`} className="flex gap-1" onClick={handleViewDetailsClick}>
+          <div
+            className="flex gap-1"
+            onClick={handleViewDetailsClick}
+          >
             <Button className="w-full" size="sm">
               <ExternalLink className="h-4 w-4" />
               View Details
             </Button>
-          </Link>
+          </div>
           {lead.profileId && (lead.profileId as any)?.slug ? (
-            <Link href={`/profiles/${(lead.profileId as any).slug}`} onClick={handleContactClick}>
+            <div onClick={handleContactClick}>
               <Button
                 variant="outline"
                 size="sm"
@@ -342,7 +387,7 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
                 <MessageCircle className="h-4 w-4" />
                 Contact
               </Button>
-            </Link>
+            </div>
           ) : (
             <Button variant="outline" size="sm" disabled>
               Contact
@@ -367,7 +412,7 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
             size="sm"
             onClick={handleUpvote}
             disabled={hasUpvoted || !isAuthenticated}
-            className={`flex items-center gap-1 ${hasUpvoted ? 'bg-orange-50 text-orange-600 border-orange-200' : ''}`}
+            className={`flex items-center gap-1 ${hasUpvoted ? "bg-orange-50 text-orange-600 border-orange-200" : ""}`}
           >
             <ThumbsUp className="h-4 w-4" />
             {hasUpvoted ? "Upvoted" : "Upvote"}
@@ -486,13 +531,18 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
         </div>
 
         <div className="flex gap-2 mt-4">
-          <Link href={`/browse/${lead._id}`} className="flex-1" onClick={handleViewDetailsClick}>
+          <div
+            className="flex-1"
+            onClick={handleViewDetailsClick}
+          >
             <Button size="sm" className="w-full">
               View Details
             </Button>
-          </Link>
+          </div>
           {lead.profileId && (lead.profileId as any)?.slug ? (
-            <Link href={`/profiles/${(lead.profileId as any).slug}`} onClick={handleContactClick}>
+            <div
+              onClick={handleContactClick}
+            >
               <Button
                 variant="outline"
                 size="sm"
@@ -501,7 +551,7 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
                 <MessageCircle className="h-4 w-4 mr-2" />
                 Contact
               </Button>
-            </Link>
+            </div>
           ) : (
             <Button variant="outline" size="sm" disabled>
               Contact
@@ -525,7 +575,7 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
             size="sm"
             onClick={handleUpvote}
             disabled={hasUpvoted || !isAuthenticated}
-            className={`flex items-center gap-1 ${hasUpvoted ? 'bg-orange-50 text-orange-600 border-orange-200' : ''}`}
+            className={`flex items-center gap-1 ${hasUpvoted ? "bg-orange-50 text-orange-600 border-orange-200" : ""}`}
           >
             <ThumbsUp className="h-4 w-4" />
           </Button>
