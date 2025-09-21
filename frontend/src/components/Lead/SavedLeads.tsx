@@ -44,6 +44,8 @@ const SavedLeadsComp: React.FC = () => {
   const [unsaving, setUnsaving] = useState<string | null>(null);
   const [hostWithoutSubdomain, setHostWithoutSubdomain] = useState<string>("");
 
+  const host = window.location.host || "zimongo.com";
+
   // Safe window access
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -187,8 +189,8 @@ const SavedLeadsComp: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto p-4">
       <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Saved Leads</h1>
-          <p className="text-gray-600">View and Manage Leads you have saved</p>
+        <h1 className="text-2xl font-bold text-gray-900">Saved Leads</h1>
+        <p className="text-gray-600">View and Manage Leads you have saved</p>
       </div>
 
       {savedLeads.length === 0 ? (
@@ -275,7 +277,12 @@ const SavedLeadsComp: React.FC = () => {
                       <Link
                         className="w-full md:w-1/2 lg:w-auto"
                         target="_blank"
-                        href={`https://${hostWithoutSubdomain}/browse/${lead._id}`}
+                        href={
+                          host.includes("localhost") ||
+                          host.includes("127.0.0.1")
+                            ? `http://${hostWithoutSubdomain}/browse/${lead._id}`
+                            : `https://${hostWithoutSubdomain}/browse/${lead._id}`
+                        }
                       >
                         <Button size="sm" className="w-full">
                           View Details
@@ -296,7 +303,12 @@ const SavedLeadsComp: React.FC = () => {
                       {lead.profileId && (lead.profileId as any)?.slug && (
                         <Link
                           target="_blank"
-                          href={`https://${hostWithoutSubdomain}/profiles/${(lead.profileId as any).slug}`}
+                          href={
+                            host.includes("localhost") ||
+                            host.includes("127.0.0.1")
+                              ? `http://${hostWithoutSubdomain}/profiles/${(lead.profileId as any).slug}`
+                              : `https://${hostWithoutSubdomain}/profiles/${(lead.profileId as any).slug}`
+                          }
                           className="w-full md:w-1/2 lg:w-auto"
                         >
                           <Button

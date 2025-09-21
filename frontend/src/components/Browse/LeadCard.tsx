@@ -24,7 +24,7 @@ import { useViewTracking } from "@/hooks/useViewTracking";
 import { useState, useEffect } from "react";
 import Api from "@/lib/api";
 import { toast } from "sonner";
-import { Bookmark, BookmarkCheck } from "lucide-react";
+import { Bookmark, BookmarkCheck, ThumbsUp } from "lucide-react";
 import useUser from "@/hooks/useUser";
 
 interface LeadCardProps {
@@ -36,6 +36,8 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
   const { me, isAuthenticated } = useUser();
   const [isSaved, setIsSaved] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasUpvoted, setHasUpvoted] = useState(false);
+  const [upvoteCount, setUpvoteCount] = useState(lead.upvotes || 0);
 
   // Track views when at least 50% of the card is visible
   const { ref: viewTrackingRef } = useViewTracking({
@@ -131,6 +133,55 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleContactClick = async () => {
+    if (isAuthenticated && lead._id) {
+      try {
+        await Api.trackInteraction(lead._id, "view_profile", "User viewed your profile through this Lead.");
+      } catch (error) {
+        console.error("Error tracking contact interaction:", error);
+      }
+    }
+  };
+
+  const handleViewDetailsClick = async () => {
+    if (isAuthenticated && lead._id) {
+      try {
+        await Api.trackInteraction(lead._id, "view_details", "User viewed the details of this lead.");
+      } catch (error) {
+        console.error("Error tracking view details interaction:", error);
+      }
+    }
+  };
+
+  const handleUpvote = async () => {
+    if (!isAuthenticated) {
+      toast.warning("Cannot upvote lead", {
+        description: "Please login to upvote leads",
+        position: "top-center",
+        richColors: true,
+      });
+      return;
+    }
+
+    if (!lead._id || hasUpvoted) return;
+
+    try {
+      await Api.trackInteraction(lead._id, "upvote", "This lead got a new upvote.");
+      setHasUpvoted(true);
+      setUpvoteCount(prev => prev + 1);
+      toast.success("Lead upvoted!", {
+        duration: 2000,
+        position: "top-center",
+        richColors: true,
+      });
+    } catch (error: any) {
+      console.error("Error upvoting lead:", error);
+      toast.error("Failed to upvote lead", {
+        description: error.response?.data?.message || "An error occurred",
+      });
     }
   };
 
@@ -266,18 +317,23 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
               <Eye className="h-4 w-4" />
               <span>{lead.views} views</span>
             </div>
+
+            <div className="flex items-center gap-1">
+              <ThumbsUp className="h-4 w-4" />
+              <span>{upvoteCount} upvotes</span>
+            </div>
           </div>
         </div>
 
         <div className="flex flex-row md:flex-col gap-2 w-full md:w-[15vw] mt-4 md:mt-0 justify-center">
-          <Link href={`/browse/${lead._id}`} className="flex gap-1">
+          <Link href={`/browse/${lead._id}`} className="flex gap-1" onClick={handleViewDetailsClick}>
             <Button className="w-full" size="sm">
               <ExternalLink className="h-4 w-4" />
               View Details
             </Button>
           </Link>
           {lead.profileId && (lead.profileId as any)?.slug ? (
-            <Link href={`/profiles/${(lead.profileId as any).slug}`}>
+            <Link href={`/profiles/${(lead.profileId as any).slug}`} onClick={handleContactClick}>
               <Button
                 variant="outline"
                 size="sm"
@@ -305,6 +361,16 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
               <Bookmark className="h-4 w-4" />
             )}
             {isSaved ? "Saved" : "Save"}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleUpvote}
+            disabled={hasUpvoted || !isAuthenticated}
+            className={`flex items-center gap-1 ${hasUpvoted ? 'bg-orange-50 text-orange-600 border-orange-200' : ''}`}
+          >
+            <ThumbsUp className="h-4 w-4" />
+            {hasUpvoted ? "Upvoted" : "Upvote"}
           </Button>
         </div>
       </div>
@@ -412,17 +478,21 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
               <Eye className="h-3 w-3" />
               <span>{lead.views}</span>
             </div>
+            <div className="flex items-center gap-1">
+              <ThumbsUp className="h-3 w-3" />
+              <span>{upvoteCount}</span>
+            </div>
           </div>
         </div>
 
         <div className="flex gap-2 mt-4">
-          <Link href={`/browse/${lead._id}`} className="flex-1">
+          <Link href={`/browse/${lead._id}`} className="flex-1" onClick={handleViewDetailsClick}>
             <Button size="sm" className="w-full">
               View Details
             </Button>
           </Link>
           {lead.profileId && (lead.profileId as any)?.slug ? (
-            <Link href={`/profiles/${(lead.profileId as any).slug}`}>
+            <Link href={`/profiles/${(lead.profileId as any).slug}`} onClick={handleContactClick}>
               <Button
                 variant="outline"
                 size="sm"
@@ -449,6 +519,15 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
             ) : (
               <Bookmark className="h-4 w-4" />
             )}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleUpvote}
+            disabled={hasUpvoted || !isAuthenticated}
+            className={`flex items-center gap-1 ${hasUpvoted ? 'bg-orange-50 text-orange-600 border-orange-200' : ''}`}
+          >
+            <ThumbsUp className="h-4 w-4" />
           </Button>
         </div>
       </div>

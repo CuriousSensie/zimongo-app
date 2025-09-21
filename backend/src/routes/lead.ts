@@ -6,6 +6,7 @@ import Lead, {
   ProductInfo,
   ServiceInfo,
 } from "../models/Lead";
+import Interaction, { InteractionType } from "../models/Interaction";
 import User from "../models/User";
 import Profile from "../models/Profile";
 import Authentication from "../middleware/auth";
@@ -958,12 +959,13 @@ leadRouter.post(
       await savedLead.save();
 
       // Add interaction
-      await lead.addInteractions({
-        type: "save",
+      const interaction = new Interaction({
+        leadId: new Types.ObjectId(leadId),
         interactorId: new Types.ObjectId(userId),
-        timestamp: new Date(),
-        content: "Lead saved to dashboard"
+        type: InteractionType.SAVE,
+        content: "User saved this Lead."
       });
+      await interaction.save();
 
       res.status(201).json({
         message: "Lead saved successfully",
@@ -996,6 +998,18 @@ leadRouter.delete(
       const deletedSave = await SavedLead.findOneAndDelete({ userId, leadId });
       if (!deletedSave) {
         return res.status(404).json({ message: "Saved lead not found" });
+      }
+
+      // Add interaction for unsaving
+      const lead = await Lead.findById(leadId);
+      if (lead) {
+        const interaction = new Interaction({
+          leadId: new Types.ObjectId(leadId),
+          interactorId: new Types.ObjectId(userId),
+          type: InteractionType.UNSAVE,
+          content: "User unsaved this lead."
+        });
+        await interaction.save();
       }
 
       res.status(200).json({
@@ -1096,5 +1110,64 @@ leadRouter.get(
     }
   }
 );
+
+// Track lead interaction
+leadRouter.post(
+  "/:leadId/interaction",
+  Authentication.User,
+  async (req: CustomRequest, res: Response) => {
+    try {
+      const userId = req.context?.user?.id;
+      const { leadId } = req.params;
+      const { type, content } = req.body;
+
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      if (!type) {
+        return res.status(400).json({ message: "Interaction type is required" });
+      }
+
+      // Valid interaction types
+      const validTypes = [InteractionType.VIEW_DETAILS, InteractionType.VIEW_PROFILE, InteractionType.UPVOTE];
+      if (!validTypes.includes(type)) {
+        return res.status(400).json({ message: "Invalid interaction type" });
+      }
+
+      const lead = await Lead.findById(leadId);
+      if (!lead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+
+      // Create interaction
+      const interaction = new Interaction({
+        leadId: new Types.ObjectId(leadId),
+        interactorId: new Types.ObjectId(userId),
+        type,
+        content: content || `User ${type.replace('_', ' ')}`
+      });
+      await interaction.save();
+
+      // If it's an upvote, increment the upvotes count
+      if (type === InteractionType.UPVOTE) {
+        lead.upvotes += 1;
+        await lead.save();
+      }
+
+      res.status(200).json({
+        message: "Interaction tracked successfully",
+        data: { type, timestamp: new Date() }
+      });
+    } catch (error: any) {
+      logger.error("Error tracking interaction:", error);
+      res.status(500).json({
+        message: "Failed to track interaction",
+        error: error.message
+      });
+    }
+  }
+);
+
 
 export default leadRouter;
