@@ -52,7 +52,7 @@ const ProfilePage = () => {
     if (slug) {
       fetchProfileData();
     }
-  }, [slug]);
+  }, [slug, router]);
 
   if (loading) {
     return (

@@ -86,7 +86,7 @@ const BrowseLeadDetailPage = () => {
     if (leadId) {
       fetchLead();
     }
-  }, [leadId, router, isAuthenticated, me]);
+  }, [leadId, router]);
 
   useEffect(() => {
     const fetchLocation = async () => {
