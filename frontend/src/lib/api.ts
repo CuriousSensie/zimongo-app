@@ -66,6 +66,15 @@ export class API {
     );
   }
 
+  //  USER APIS
+  getUserSettings() {
+    return this.instance.get("/user/settings");
+  }
+
+  updateUserSettings(is2FA: boolean) {
+    return this.instance.patch("/user/settings", { is2FA });
+  }
+
   getUserLocation() {
     return this.instance.get("/user/location");
   }
@@ -199,6 +208,26 @@ export class API {
 
   checkIfLeadIsSaved(leadId: string) {
     return this.instance.get(`/lead/is-saved/${leadId}`);
+  }
+
+  // Track lead interaction
+  trackInteraction(leadId: string, type: string, content?: string) {
+    return this.instance.post(`/interaction/create`, { leadId, type, content });
+  }
+
+  // Get user interactions
+  getUserInteractions(params: { page?: number; limit?: number }) {
+    return this.instance.get("/interaction/my", { params });
+  }
+
+  // Get lead interactions
+  getLeadInteractions(leadId: string, params: { page?: number; limit?: number; type?: string }) {
+    return this.instance.get(`/interaction/lead/${leadId}`, { params });
+  }
+
+  // Get interaction statistics
+  getInteractionStats(leadId: string) {
+    return this.instance.get(`/interaction/stats/${leadId}`);
   }
 
 }

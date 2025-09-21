@@ -15,6 +15,7 @@ import LocationProvider from "./src/lib/location";
 import profileRouter from "./src/routes/profile";
 import fileRouter from "./src/routes/file";
 import leadRouter from "./src/routes/lead";
+import interactionRouter from "./src/routes/interaction";
 
 dotenv.config();
 
@@ -100,6 +101,7 @@ app.get("/api/test", async (req, res) => {
 app.use("/api/user", userRouter);
 app.use("/api/profile", profileRouter);
 app.use("/api/lead", leadRouter);
+app.use("/api/interaction", interactionRouter);
 app.use("/api/file", fileRouter);
 
 // Error handling middleware

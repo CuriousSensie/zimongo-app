@@ -26,7 +26,7 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import { LuMapPin } from "react-icons/lu";
-import { Calendar, Eye, Handshake } from "lucide-react";
+import { Calendar, Eye, Handshake, ThumbsUp } from "lucide-react";
 import { FaMoneyBill } from "react-icons/fa6";
 
 const LeadManagement = () => {
@@ -380,8 +380,8 @@ const LeadManagement = () => {
                       views
                     </span>
                     <span className="flex items-center gap-1">
-                      <Handshake className="h-3 w-3 md:h-4 md:w-4" />{" "}
-                      {lead.interactions?.length} interactions
+                      <ThumbsUp className="h-3 w-3 md:h-4 md:w-4" />{" "}
+                      {lead.upvotes || 0} upvotes
                     </span>
                     {lead.budget && (
                       <span className="flex items-center gap-1">

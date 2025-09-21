@@ -56,12 +56,6 @@ interface LeadFile {
   size: number;
 }
 
-interface Interactions {
-  type: string;
-  interactorId: Types.ObjectId;
-  timestamp: Date;
-  content: string;
-}
 
 // Interface for Product Information
 export interface ProductInfo {
@@ -148,7 +142,6 @@ export interface ILead extends Document {
   // Engagement tracking
   views: number;
   upvotes: number;
-  interactions: Interactions[];
   isPublic: boolean;
   isFeatured: boolean;
 
@@ -162,7 +155,6 @@ export interface ILead extends Document {
 
   // Instance Methods
   incrementViews(): Promise<ILead>;
-  addInteractions(interactionData: Interactions): Promise<ILead>;
   isExpired(): boolean;
 }
 
@@ -321,12 +313,6 @@ const LeadSchema = new Schema<ILead>({
   // Engagement tracking
   views: { type: Number, default: 0 },
   upvotes: { type: Number, default: 0 },
-  interactions: [{
-    type: { type: String },
-    interactorId: { type: Schema.Types.ObjectId, ref: "User" },
-    timestamp: { type: Date },
-    content: { type: String }
-  }],
   isPublic: { type: Boolean, default: true },
   isFeatured: { type: Boolean, default: false },
   isVerified: { type: Boolean, default: false },
@@ -367,10 +353,6 @@ LeadSchema.methods.incrementViews = function() {
   return this.save();
 };
 
-LeadSchema.methods.addInteractions = function(interactionData: Interactions) {
-  this.interactions.push(interactionData);
-  return this.save();
-};
 
 LeadSchema.methods.isExpired = function() {
   return this.expiryDate && this.expiryDate < new Date();

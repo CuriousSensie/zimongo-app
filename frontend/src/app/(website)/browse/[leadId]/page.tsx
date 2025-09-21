@@ -26,6 +26,7 @@ import {
   Mail,
   Bookmark,
   BookmarkCheck,
+  ThumbsUp,
 } from "lucide-react";
 import { locationService } from "@/utils/country-state-city";
 import ImageCarousel from "@/components/common/ImageCarousel";
@@ -63,7 +64,7 @@ const BrowseLeadDetailPage = () => {
           if (session?.user?.accessToken) {
             try {
               const savedResponse = await Api.checkIfLeadIsSaved(leadId);
-              setIsSaved(savedResponse.isSaved);
+              setIsSaved(savedResponse.data.isSaved);
             } catch (error) {
               // Silently fail - user might not be authenticated
             }
@@ -594,11 +595,11 @@ const BrowseLeadDetailPage = () => {
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center text-slate-600">
-                    <Handshake className="w-4 h-4 mr-2" />
-                    <span className="text-sm">Interactions</span>
+                    <ThumbsUp className="w-4 h-4 mr-2" />
+                    <span className="text-sm">Upvotes</span>
                   </div>
                   <span className="font-semibold text-slate-900">
-                    {lead.interactions ? lead.interactions.length : 0}
+                    {lead.upvotes || 0}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
