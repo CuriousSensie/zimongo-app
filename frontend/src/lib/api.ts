@@ -178,6 +178,10 @@ export class API {
     return this.instance.patch(`/lead/${id}/status`, { status });
   }
 
+  extendLeadExpiry(id: string) {
+    return this.instance.patch(`/lead/${id}/extend-expiry`);
+  }
+
 
   sendLeadVerificationOTP(leadId: string) {
     return this.instance.post(`/lead/${leadId}/verify`);

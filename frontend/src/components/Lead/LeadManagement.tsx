@@ -126,6 +126,40 @@ const LeadManagement = () => {
     }
   };
 
+  const handleExtendExpiry = async (leadId: string) => {
+    try {
+      const response = await Api.extendLeadExpiry(leadId);
+
+      if (response.status === 200) {
+        toast.success("Lead expiry extended by 30 days", {
+          position: "top-center",
+          richColors: true,
+          action: {
+            label: "Close",
+            onClick: () => window.location.reload(),
+          },
+        });
+        fetchLeads(); // Refresh the list
+      }
+    } catch (error: any) {
+      console.error("Error extending lead expiry:", error);
+      toast.error("Failed to extend lead expiry", {
+        position: "top-center",
+        richColors: true,
+        description: (error as Error).message,
+        action: {
+          label: "Close",
+          onClick: () => window.location.reload(),
+        },
+      });
+    }
+  };
+
+  // Helper function for expiry
+  const isLeadExpired = (lead: ILead) => {
+    return lead.expiryDate && new Date(lead.expiryDate) < new Date();
+  };
+
   const handleDeleteLead = async (leadId: string) => {
     try {
       const response = await Api.deleteLead(leadId);
@@ -348,10 +382,18 @@ const LeadManagement = () => {
                     </h3>
                     <Badge
                       variant="outline"
-                      className={getStatusBadgeColor(lead.status)}
+                      className={getStatusBadgeColor(isLeadExpired(lead) ? "expired" : lead.status)}
                     >
-                      {lead.status}
+                      {isLeadExpired(lead) ? "expired" : lead.status}
                     </Badge>
+                    {isLeadExpired(lead) && (
+                      <Badge
+                        variant="outline"
+                        className="bg-orange-100 text-orange-800 border-orange-200"
+                      >
+                        Expiry: {new Date(lead.expiryDate!).toLocaleDateString()}
+                      </Badge>
+                    )}
                     <Badge
                       variant="outline"
                       className={getPriorityBadgeColor(lead.priority)}
@@ -415,7 +457,14 @@ const LeadManagement = () => {
                   </Select> */}
 
                   {/* Lead Actions */}
-                  {!lead.isVerified ? (
+                  {isLeadExpired(lead) ? (
+                    <Button
+                      className="px-8 py-2 min-w-[120px] w-full bg-orange-600 hover:bg-orange-700"
+                      onClick={() => handleExtendExpiry(lead._id!)}
+                    >
+                      Extend Expiry
+                    </Button>
+                  ) : !lead.isVerified ? (
                     <Dialog>
                       <DialogTrigger className="w-full md:w-auto">
                         <Button

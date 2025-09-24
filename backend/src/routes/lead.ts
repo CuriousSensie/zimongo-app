@@ -317,6 +317,16 @@ leadRouter.get(
         sortOrder = "desc",
       } = req.query;
 
+      // update expired leads (leads that have expired but their statistus is notupdated yet)
+      await Lead.updateMany(
+        {
+          userId,
+          expiryDate: { $lt: new Date() },
+          status: { $ne: "expired" }
+        },
+        { status: "expired" }
+      );
+
       // Build filter query
       const filter: any = { userId };
       if (search && search !== "") {
@@ -837,6 +847,64 @@ leadRouter.patch(
       logger.error("Error updating lead status:", error);
       res.status(500).json({
         message: "Failed to update lead status",
+        error: error.message,
+      });
+    }
+  }
+);
+
+// Extend lead expiry
+leadRouter.patch(
+  "/:id/extend-expiry",
+  Authentication.User,
+  async (req: CustomRequest, res: Response) => {
+    try {
+      const userId = req?.context?.user?.id;
+      const { id } = req.params;
+
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      // Find the lead and check ownership
+      const lead = await Lead.findById(id);
+      if (!lead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+
+      if (lead.userId.toString() !== userId) {
+        return res
+          .status(403)
+          .json({ message: "Not authorized to update this lead" });
+      }
+
+      // Extend expiry by 30 days from now
+      const newExpiryDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      lead.expiryDate = newExpiryDate;
+      
+      // If the lead was expired, reactivate it to inactive status so user can verify/activate
+      if (lead.status === "expired") {
+        lead.status = lead.isVerified ? "active" : "inactive";
+      }
+      
+      await lead.save();
+
+      logger.info(`Lead expiry extended successfully by user ${userId}`, {
+        leadId: id,
+        newExpiryDate: newExpiryDate.toISOString(),
+      });
+
+      res.status(200).json({
+        message: "Lead expiry extended successfully",
+        data: { 
+          expiryDate: lead.expiryDate,
+          status: lead.status
+        },
+      });
+    } catch (error: any) {
+      logger.error("Error extending lead expiry:", error);
+      res.status(500).json({
+        message: "Failed to extend lead expiry",
         error: error.message,
       });
     }

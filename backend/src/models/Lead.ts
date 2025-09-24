@@ -135,7 +135,7 @@ export interface ILead extends Document {
   };
   
   // Lead status and metadata
-  status: string; // inactive active, flagged, closed, expired
+  status: string; // inactive (verification required), active, flagged, closed, expired
   priority: string; // low, medium, high, urgent
   expiryDate?: Date;
   
