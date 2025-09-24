@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { ServiceInfo, ServiceType, ServiceFrequency } from "@/types/lead";
+import { serviceCategories, leadDefaults } from "@/constant/lead";
 
 interface ServiceFormProps {
   serviceInfo?: Partial<ServiceInfo>;
@@ -48,20 +49,11 @@ const ServiceForm: React.FC<ServiceFormProps> = ({ serviceInfo = {}, onChange })
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="it">IT & Technology</SelectItem>
-              <SelectItem value="cleaning">Cleaning Services</SelectItem>
-              <SelectItem value="marketing">Marketing & Advertising</SelectItem>
-              <SelectItem value="construction">Construction & Renovation</SelectItem>
-              <SelectItem value="consulting">Business Consulting</SelectItem>
-              <SelectItem value="maintenance">Maintenance & Repair</SelectItem>
-              <SelectItem value="design">Design & Creative</SelectItem>
-              <SelectItem value="legal">Legal Services</SelectItem>
-              <SelectItem value="accounting">Accounting & Finance</SelectItem>
-              <SelectItem value="logistics">Logistics & Transportation</SelectItem>
-              <SelectItem value="security">Security Services</SelectItem>
-              <SelectItem value="healthcare">Healthcare Services</SelectItem>
-              <SelectItem value="education">Education & Training</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
+              {serviceCategories.map((category) => (
+                <SelectItem key={category.value} value={category.value}>
+                  {category.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -175,7 +167,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({ serviceInfo = {}, onChange })
                 type="radio"
                 id="onsite"
                 name="serviceDelivery"
-                checked={!serviceInfo.isRemote}
+                checked={serviceInfo.isRemote === false || serviceInfo.isRemote === undefined}
                 onChange={() => handleChange("isRemote", false)}
               />
               <Label htmlFor="onsite">On-site</Label>

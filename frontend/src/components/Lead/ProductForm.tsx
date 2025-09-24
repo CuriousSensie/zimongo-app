@@ -24,6 +24,13 @@ import { toast } from "sonner";
 import { cleanupSingleFile } from "@/utils/fileCleanup";
 import Api from "@/lib/api";
 import { NEXT_PUBLIC_S3_BASE_URL } from "@/constant/env";
+import { 
+  productCategories, 
+  commonMaterials, 
+  packagingTypes, 
+  fileUploadConfig,
+  leadDefaults
+} from "@/constant/lead";
 
 interface ProductFormProps {
   productInfo?: Partial<ProductInfo>;
@@ -63,7 +70,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
   const handleDimensionChange = (dimension: string, value: any) => {
     const currentDimensions = productInfo.dimensions || {
-      unit: DimensionUnit.CM,
+      unit: leadDefaults.dimensionUnit,
     };
     onChange("dimensions", {
       ...currentDimensions,
@@ -72,7 +79,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
   };
 
   const handleWeightChange = (field: string, value: any) => {
-    const currentWeight = productInfo.weight || { unit: WeightUnit.KG };
+    const currentWeight = productInfo.weight || { unit: leadDefaults.weightUnit };
     onChange("weight", {
       ...currentWeight,
       [field]: value,
@@ -92,8 +99,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
     // Validate file types and sizes
     const validFiles: File[] = [];
-    const maxSize = 10 * 1024 * 1024; // 10MB
-    const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    const maxSize = fileUploadConfig.maxFileSize;
+    const allowedTypes = fileUploadConfig.allowedImageTypes;
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
@@ -114,7 +121,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       }
 
       if (file.size > maxSize) {
-        toast.error(`${file.name} is too large. Maximum size is 10MB.`);
+        toast.error(`${file.name} is too large. Maximum size is ${Math.round(maxSize / (1024 * 1024))}MB.`);
         continue;
       }
 
@@ -124,8 +131,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
     if (validFiles.length === 0) return;
 
     // Check total number of images (max 5)
-    if (uploadedImages.length + validFiles.length > 5) {
-      toast.error("You can upload a maximum of 5 images per product.", {
+    if (uploadedImages.length + validFiles.length > fileUploadConfig.maxFiles) {
+      toast.error(`You can upload a maximum of ${fileUploadConfig.maxFiles} images per product.`, {
         position: "top-center",
         richColors: true,
         action: {
@@ -255,18 +262,11 @@ const ProductForm: React.FC<ProductFormProps> = ({
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="electronics">Electronics</SelectItem>
-              <SelectItem value="construction">
-                Construction Materials
-              </SelectItem>
-              <SelectItem value="automotive">Automotive</SelectItem>
-              <SelectItem value="textiles">Textiles</SelectItem>
-              <SelectItem value="machinery">Machinery</SelectItem>
-              <SelectItem value="chemicals">Chemicals</SelectItem>
-              <SelectItem value="food">Food & Beverages</SelectItem>
-              <SelectItem value="medical">Medical Equipment</SelectItem>
-              <SelectItem value="furniture">Furniture</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
+              {productCategories.map((category) => (
+                <SelectItem key={category.value} value={category.value}>
+                  {category.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -334,7 +334,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
             placeholder="Height"
           />
           <Select
-            value={productInfo.dimensions?.unit || DimensionUnit.CM}
+            value={productInfo.dimensions?.unit || leadDefaults.dimensionUnit}
             onValueChange={(value) => handleDimensionChange("unit", value)}
           >
             <SelectTrigger className="bg-white">
@@ -367,7 +367,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
             placeholder="Weight value"
           />
           <Select
-            value={productInfo.weight?.unit || WeightUnit.KG}
+            value={productInfo.weight?.unit || leadDefaults.weightUnit}
             onValueChange={(value) => handleWeightChange("unit", value)}
           >
             <SelectTrigger className="bg-white">
@@ -474,7 +474,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
         <div className="flex flex-col gap-2">
           <Label className="text-slate-700">Unit of Measurement *</Label>
           <Select
-            value={productInfo.unitOfMeasurement || UnitOfMeasurement.PIECES}
+            value={productInfo.unitOfMeasurement || leadDefaults.unitOfMeasurement}
             onValueChange={(value) => handleChange("unitOfMeasurement", value)}
           >
             <SelectTrigger className="bg-white">
@@ -624,7 +624,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
             type="button"
             variant="outline"
             onClick={triggerFileInput}
-            disabled={isUploading || uploadedImages.length >= 5}
+            disabled={isUploading || uploadedImages.length >= fileUploadConfig.maxFiles}
             className="w-full h-32 border-2 border-dashed border-gray-300 hover:border-gray-400 bg-gray-50 hover:bg-gray-100"
           >
             <div className="flex flex-col items-center gap-2">
@@ -637,8 +637,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 <>
                   <Upload className="h-8 w-8 text-gray-400" />
                   <span className="text-gray-600">
-                    {uploadedImages.length >= 5
-                      ? "Maximum 5 images reached"
+                    {uploadedImages.length >= fileUploadConfig.maxFiles
+                      ? `Maximum ${fileUploadConfig.maxFiles} images reached`
                       : "Click to upload product images"}
                   </span>
                   <span className="text-xs text-gray-500">
@@ -687,7 +687,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
         <p className="text-sm text-gray-500">
           Add high-quality images of your product to attract more buyers. You
-          can upload up to 5 images.
+          can upload up to {fileUploadConfig.maxFiles} images.
         </p>
       </div>
     </div>
