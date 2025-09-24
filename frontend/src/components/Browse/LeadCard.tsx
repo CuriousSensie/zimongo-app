@@ -47,20 +47,26 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
     debounceMs: 1000,
   });
 
-  // Check if lead is saved when component mounts
+  // Check if lead is saved and upvoted when component mounts
   useEffect(() => {
-    const checkSavedStatus = async () => {
+    const checkLeadStatus = async () => {
       if (isAuthenticated && lead._id) {
         try {
-          const response = await Api.checkIfLeadIsSaved(lead._id);
-          setIsSaved(response.data.isSaved);
+          const [savedResponse, upvoteResponse] = await Promise.all([
+            Api.checkIfLeadIsSaved(lead._id),
+            Api.checkUpvoteStatus(lead._id)
+          ]);
+          
+          setIsSaved(savedResponse.data.isSaved);
+          setHasUpvoted(upvoteResponse.data.data.hasUpvoted);
         } catch (error) {
-          // Silently fail - user might not be authenticated
+          // Silently fail
+          console.error("Error checking lead status:", error);
         }
       }
     };
 
-    checkSavedStatus();
+    checkLeadStatus();
   }, [isAuthenticated, lead._id]);
 
   const handleSaveToggle = async () => {
@@ -194,7 +200,7 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
     }
   };
 
-  const handleUpvote = async () => {
+  const handleUpvoteToggle = async () => {
     if (!isAuthenticated) {
       toast.warning("Cannot upvote lead", {
         description: "Please login to upvote leads",
@@ -204,26 +210,55 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
       return;
     }
 
-    if (!lead._id || hasUpvoted) return;
+    if (!lead._id) return;
 
     try {
-      await Api.trackInteraction(
-        lead._id,
-        "upvote",
-        "This lead got a new upvote."
-      );
-      setHasUpvoted(true);
-      setUpvoteCount((prev) => prev + 1);
-      toast.success("Lead upvoted!", {
-        duration: 2000,
-        position: "top-center",
-        richColors: true,
-      });
+      if (hasUpvoted) {
+        // Remove upvote
+        await Api.removeUpvote(lead._id);
+        setHasUpvoted(false);
+        setUpvoteCount((prev) => prev - 1);
+        toast.success("Upvote removed!", {
+          duration: 2000,
+          position: "top-center",
+          richColors: true,
+        });
+      } else {
+        // Add upvote
+        await Api.addUpvote(lead._id);
+        setHasUpvoted(true);
+        setUpvoteCount((prev) => prev + 1);
+        toast.success("Lead upvoted!", {
+          duration: 2000,
+          position: "top-center",
+          richColors: true,
+        });
+      }
     } catch (error: any) {
-      console.error("Error upvoting lead:", error);
-      toast.error("Failed to upvote lead", {
-        description: error.response?.data?.message || "An error occurred",
-      });
+      console.error("Error toggling upvote:", error);
+      
+      // Handle specific error cases
+      if (error.response?.data?.code === "ALREADY_UPVOTED") {
+        setHasUpvoted(true);
+        toast.warning("Already upvoted", {
+          description: "You have already upvoted this lead",
+          position: "top-center",
+          richColors: true,
+        });
+      } else if (error.response?.data?.code === "NOT_UPVOTED") {
+        setHasUpvoted(false);
+        toast.warning("Not upvoted", {
+          description: "You haven't upvoted this lead yet",
+          position: "top-center",
+          richColors: true,
+        });
+      } else {
+        toast.error(`Failed to ${hasUpvoted ? 'remove upvote' : 'upvote lead'}`, {
+          description: error.response?.data?.message || "An error occurred",
+          position: "top-center",
+          richColors: true,
+        });
+      }
     }
   };
 
@@ -410,8 +445,8 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
           <Button
             variant="outline"
             size="sm"
-            onClick={handleUpvote}
-            disabled={hasUpvoted || !isAuthenticated}
+            onClick={handleUpvoteToggle}
+            disabled={!isAuthenticated}
             className={`flex items-center gap-1 ${hasUpvoted ? "bg-orange-50 text-orange-600 border-orange-200" : ""}`}
           >
             <ThumbsUp className="h-4 w-4" />
@@ -573,8 +608,7 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
           <Button
             variant="outline"
             size="sm"
-            onClick={handleUpvote}
-            disabled={hasUpvoted || !isAuthenticated}
+            onClick={handleUpvoteToggle}
             className={`flex items-center gap-1 ${hasUpvoted ? "bg-orange-50 text-orange-600 border-orange-200" : ""}`}
           >
             <ThumbsUp className="h-4 w-4" />

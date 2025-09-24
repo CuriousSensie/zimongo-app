@@ -1140,6 +1140,22 @@ leadRouter.post(
         return res.status(404).json({ message: "Lead not found" });
       }
 
+      // For upvotes, check if user has already upvoted this lead (as a fallback)
+      if (type === InteractionType.UPVOTE) {
+        const existingUpvote = await Interaction.findOne({
+          leadId: new Types.ObjectId(leadId),
+          interactorId: new Types.ObjectId(userId),
+          type: InteractionType.UPVOTE
+        });
+
+        if (existingUpvote) {
+          return res.status(400).json({ 
+            message: "You have already upvoted this lead",
+            code: "ALREADY_UPVOTED"
+          });
+        }
+      }
+
       // Create interaction
       const interaction = new Interaction({
         leadId: new Types.ObjectId(leadId),

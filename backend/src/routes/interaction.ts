@@ -36,6 +36,22 @@ interactionRouter.post(
         return res.status(404).json({ message: "Lead not found" });
       }
 
+      // For upvotes, check if user has already upvoted this lead (as a fallback)
+      if (type === InteractionType.UPVOTE) {
+        const existingUpvote = await Interaction.findOne({
+          leadId: new Types.ObjectId(leadId),
+          interactorId: new Types.ObjectId(userId),
+          type: InteractionType.UPVOTE
+        });
+
+        if (existingUpvote) {
+          return res.status(400).json({ 
+            message: "You have already upvoted this lead",
+            code: "ALREADY_UPVOTED"
+          });
+        }
+      }
+
       // Create the interaction
       const interactionData: Partial<IInteraction> = {
         leadId: new Types.ObjectId(leadId),
@@ -251,6 +267,110 @@ interactionRouter.get(
       logger.error("Error fetching interaction stats:", error);
       res.status(500).json({
         message: "Failed to fetch interaction stats",
+        error: error.message
+      });
+    }
+  }
+);
+
+// Check if user has upvoted a specific lead
+interactionRouter.get(
+  "/check-upvote/:leadId",
+  Authentication.User,
+  async (req: CustomRequest, res: Response) => {
+    try {
+      const userId = req.context?.user?.id;
+      const { leadId } = req.params;
+
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      if (!Types.ObjectId.isValid(leadId)) {
+        return res.status(400).json({ message: "Invalid lead ID" });
+      }
+
+      // Check if user has upvoted this lead
+      const existingUpvote = await Interaction.findOne({
+        leadId: new Types.ObjectId(leadId),
+        interactorId: new Types.ObjectId(userId),
+        type: InteractionType.UPVOTE
+      });
+
+      res.status(200).json({
+        message: "Upvote status retrieved successfully",
+        data: {
+          hasUpvoted: !!existingUpvote,
+          upvoteId: existingUpvote?._id || null
+        }
+      });
+    } catch (error: any) {
+      logger.error("Error checking upvote status:", error);
+      res.status(500).json({
+        message: "Failed to check upvote status",
+        error: error.message
+      });
+    }
+  }
+);
+
+// Remove upvote from a lead
+interactionRouter.delete(
+  "/upvote/:leadId",
+  Authentication.User,
+  async (req: CustomRequest, res: Response) => {
+    try {
+      const userId = req.context?.user?.id;
+      const { leadId } = req.params;
+
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      if (!Types.ObjectId.isValid(leadId)) {
+        return res.status(400).json({ message: "Invalid lead ID" });
+      }
+
+      // Find the user's upvote for this lead
+      const existingUpvote = await Interaction.findOne({
+        leadId: new Types.ObjectId(leadId),
+        interactorId: new Types.ObjectId(userId),
+        type: InteractionType.UPVOTE
+      });
+
+      if (!existingUpvote) {
+        return res.status(404).json({ 
+          message: "You haven't upvoted this lead",
+          code: "NOT_UPVOTED"
+        });
+      }
+
+      // Remove the upvote interaction
+      await Interaction.findByIdAndDelete(existingUpvote._id);
+
+      // Decrement the lead's upvote count
+      const lead = await Lead.findById(leadId);
+      if (lead && lead.upvotes > 0) {
+        lead.upvotes -= 1;
+        await lead.save();
+      }
+
+      logger.info(`Upvote removed successfully by user ${userId}`, {
+        leadId,
+        upvoteId: existingUpvote._id
+      });
+
+      res.status(200).json({
+        message: "Upvote removed successfully",
+        data: {
+          leadId,
+          newUpvoteCount: lead?.upvotes || 0
+        }
+      });
+    } catch (error: any) {
+      logger.error("Error removing upvote:", error);
+      res.status(500).json({
+        message: "Failed to remove upvote",
         error: error.message
       });
     }
