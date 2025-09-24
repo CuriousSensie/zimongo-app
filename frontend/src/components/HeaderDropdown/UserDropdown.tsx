@@ -7,7 +7,7 @@ import useUser from "@/hooks/useUser";
 import { ArrowLeftFromLine, ChevronDown, User } from "lucide-react";
 import { extractSubdomain } from "@/utils/subdomain";
 import Image from "next/image";
-import Avatar from "../../../public/avatar.png";
+import Avatar from "@/assets/avatar.png";
 import { NEXT_PUBLIC_S3_BASE_URL } from "@/constant/env";
 
 const DropdownUser = () => {

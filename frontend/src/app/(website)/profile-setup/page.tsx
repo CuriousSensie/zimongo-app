@@ -1,4 +1,4 @@
-import SiteHeader from '@/components/Headers/SiteHeader'
+import SiteHeader from '@/components/common/Headers/SiteHeader'
 import Onboarding from '@/components/Onboarding/Onboarding'
 import React from 'react'
 

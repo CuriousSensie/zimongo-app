@@ -22,7 +22,7 @@ import Image from "next/image";
 import { NEXT_PUBLIC_S3_BASE_URL } from "@/constant/env";
 import ZoomableImage from "../common/ZoomableImage";
 import { z } from "zod";
-import Avatar from "../../../public/avatar.png";
+import Avatar from "@/assets/logo.png";
 
 const profileSchema = z.object({
   companyDescription: z

@@ -1,106 +1,105 @@
-import { Button, Input, Portal } from "@chakra-ui/react";
-import { Select } from "@chakra-ui/react";
-import { Search } from "lucide-react";
+import React from "react";
+import { ChevronDown, Search } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const HeroSection = () => {
   return (
-    <section className="relative min-h-[92vh] flex items-center justify-center text-white overflow-hidden">
-      {/* Gradient Background */}
-      <div className="absolute inset-0 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 opacity-90" />
+    <section className="bg-gray-50 py-12 lg:py-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          {/* Left Content */}
+          <div className="space-y-8">
+            <div>
+              <div className="flex flex-row gap-2 items-center mb-3">
+                <p className="text-orange-500 font-medium">What we give</p>
+                <div className="h-1 w-10 bg-orange-500 mt-1"></div>
+              </div>
+              <h1 className="text-4xl lg:text-5xl xl:text-6xl font-semibold text-gray-900 leading-tight">
+                <p className="italic font-extrabold">One Platform.</p>
+                <p className="font-medium">Endless</p>
+                <p className="font-medium">Connections</p>
+              </h1>
+              <p className="mt-6 text-lg text-gray-600 max-w-md">
+                Connect with manufacturers, freelancers, and service providers
+                near you
+              </p>
+            </div>
 
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-black/20" />
+            {/* Search Bar */}
+            <div className="flex w-full mx-auto max-w-2xl overflow-hidden rounded-full border-4 border-orange-500 bg-white shadow-sm z-999">
+              {/* Dropdown */}
+              <Select value="">
+                <SelectTrigger className="w-1/4 h-full flex items-center rounded-none gap-1 px-4 py-3 ">
+                  <SelectValue placeholder="Lead Type" />
+                </SelectTrigger>
+                <SelectContent className="w-1/4 h-full ml-3">
+                  <SelectItem value={"buy"}>Buy Leads</SelectItem>
+                  <SelectItem value={"sell"}>Sell Leads</SelectItem>
+                </SelectContent>
+              </Select>
 
-      <div className="relative z-10 text-center max-w-4xl mx-auto px-4">
-        <h1 className="text-4xl md:text-6xl font-bold mb-4">
-          Find The Best Leads Near You!
-        </h1>
+              {/* Divider */}
+              <div className="w-px bg-gray-300" />
 
-        <p className="text-xl mb-8 opacity-90">
-          Connect with quality leads for products and services
-        </p>
+              {/* Input */}
+              <input
+                type="text"
+                placeholder="Enter product / Service to search"
+                className="flex-1 px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:outline-none"
+              />
 
-        {/* Search Form */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Select.Root size="md">
-              <Select.Control className="bg-white rounded-md ">
-                <Select.Trigger>
-                  <Select.ValueText
-                    placeholder="Select Lead Type"
-                    className="text-center text-zinc-700 px-2"
+              {/* Search Button */}
+              <button className="w-1/4 flex items-center gap-1 px-5 py-3 text-sm font-semibold text-white bg-orange-500 hover:bg-orange-600 transition">
+                <Search size={18} className="text-white" />
+                Search
+              </button>
+            </div>
+          </div>
+
+          {/* Right Images */}
+          <div className="relative">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-4">
+                <div className="bg-black rounded-2xl overflow-hidden h-48">
+                  <img
+                    src="https://images.pexels.com/photos/416405/pexels-photo-416405.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop"
+                    alt="Office meeting"
+                    className="w-full h-full object-cover"
                   />
-                </Select.Trigger>
-                <Select.IndicatorGroup>
-                  <Select.Indicator />
-                </Select.IndicatorGroup>
-              </Select.Control>
-              <Portal>
-                <Select.Positioner>
-                  <Select.Content>
-                    {[
-                      { label: "Products", value: "products" },
-                      { label: "Services", value: "service" },
-                    ].map((type) => (
-                      <Select.Item
-                        item={type}
-                        key={type.value}
-                        className="text-zinc-700"
-                      >
-                        {type.label}
-                        <Select.ItemIndicator />
-                      </Select.Item>
-                    ))}
-                  </Select.Content>
-                </Select.Positioner>
-              </Portal>
-            </Select.Root>
-
-            <Select.Root size="md">
-              <Select.HiddenSelect />
-              <Select.Control className="bg-white rounded-md ">
-                <Select.Trigger>
-                  <Select.ValueText
-                    placeholder="Buy / Sell"
-                    className="text-center text-zinc-700 px-2"
+                </div>
+                <div className="bg-gray-100 rounded-2xl overflow-hidden h-32">
+                  <img
+                    src="https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg?auto=compress&cs=tinysrgb&w=300&h=130&fit=crop"
+                    alt="Business discussion"
+                    className="w-full h-full object-cover"
                   />
-                </Select.Trigger>
-                <Select.IndicatorGroup>
-                  <Select.Indicator />
-                </Select.IndicatorGroup>
-              </Select.Control>
-              <Portal>
-                <Select.Positioner>
-                  <Select.Content>
-                    {[
-                      { label: "I want to Buy", value: "buy" },
-                      { label: "I want to Sell", value: "sell" },
-                    ].map((type) => (
-                      <Select.Item
-                        item={type}
-                        key={type.value}
-                        className="text-zinc-700"
-                      >
-                        {type.label}
-                        <Select.ItemIndicator />
-                      </Select.Item>
-                    ))}
-                  </Select.Content>
-                </Select.Positioner>
-              </Portal>
-            </Select.Root>
-
-            <Input
-              placeholder="Location"
-              className="bg-white text-zinc-700 p-2"
-            />
+                </div>
+              </div>
+              <div className="space-y-4 pt-8">
+                <div className="bg-gray-100 rounded-2xl overflow-hidden h-32">
+                  <img
+                    src="https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=300&h=130&fit=crop"
+                    alt="Team collaboration"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="bg-black rounded-2xl overflow-hidden h-48">
+                  <img
+                    src="https://images.pexels.com/photos/416978/pexels-photo-416978.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop"
+                    alt="Professional workspace"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-
-        <Button className="bg-amber-500 hover:bg-amber-700 text-white p-2 md:w-1/3 mt-4 gap-3">
-          <Search />
-          Search
-        </Button>
       </div>
     </section>
   );
