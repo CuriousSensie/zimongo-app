@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import SiteHeader from "@/components/Headers/SiteHeader";
+import SiteHeader from "@/components/common/Headers/SiteHeader";
 import { IProfile } from "@/types/profile";
 import { ILead } from "@/types/lead";
 import BusinessProfilePage from "@/components/Profile/BusinessProfilePage";

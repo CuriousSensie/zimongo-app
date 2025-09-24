@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 import { locationService } from "@/utils/country-state-city";
 import ImageCarousel from "@/components/common/ImageCarousel";
-import SiteHeader from "@/components/Headers/SiteHeader";
+import SiteHeader from "@/components/common/Headers/SiteHeader";
 import Api from "@/lib/api";
 import { markLeadAsViewed } from "@/hooks/useViewTracking";
 import useUser from "@/hooks/useUser";

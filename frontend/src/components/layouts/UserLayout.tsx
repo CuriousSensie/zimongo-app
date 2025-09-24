@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import useUser from "@/hooks/useUser";
 import { useRouter } from "next/navigation";
 import UserSidebar from "../dynamicSidebars/UserSidebar";
-import UserHeader from "../Headers/UserHeader";
+import UserHeader from "../common/Headers/UserHeader";
 
 export default function UserLayout({
   children,

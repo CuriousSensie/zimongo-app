@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
-import UserDropdown from "../HeaderDropdown/UserDropdown";
-import FullTextLogo from "../Logos/FullTextLogo";
+import UserDropdown from "../../HeaderDropdown/UserDropdown";
+import FullTextLogo from "../../Logos/FullTextLogo";
 import Link from "next/link";
 
 const UserHeader = ({
