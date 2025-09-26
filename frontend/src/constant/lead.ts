@@ -402,6 +402,81 @@ export const validationMessages = {
 };
 
 
+// Sorting Options for Browse Page
+export const sortingOptions = [
+  { 
+    value: "createdAt", 
+    label: "Latest", 
+    description: "Most recently posted",
+    icon: "clock"
+  },
+  { 
+    value: "budget", 
+    label: "Budget", 
+    description: "Highest to lowest budget",
+    icon: "dollar-sign"
+  },
+  { 
+    value: "views", 
+    label: "Most Viewed", 
+    description: "Most popular leads",
+    icon: "eye"
+  },
+  { 
+    value: "upvotes", 
+    label: "Most Upvoted", 
+    description: "Highest rated leads",
+    icon: "thumbs-up"
+  }
+];
+
+// Sort Order Options
+export const sortOrderOptions = [
+  { value: "desc", label: "High to Low" },
+  { value: "asc", label: "Low to High" }
+];
+
+// Budget Range Presets for Quick Filtering
+export const budgetRanges = [
+  { label: "Under $1K", min: "0", max: "1000" },
+  { label: "$1K - $5K", min: "1000", max: "5000" },
+  { label: "$5K - $10K", min: "5000", max: "10000" },
+  { label: "$10K - $50K", min: "10000", max: "50000" },
+  { label: "$50K+", min: "50000", max: "" },
+];
+
+// Location Options (Placeholder for now as requested)
+export const locationFilters = {
+  countries: [
+    { value: "us", label: "United States" },
+    { value: "ca", label: "Canada" },
+    { value: "uk", label: "United Kingdom" },
+    { value: "de", label: "Germany" },
+    { value: "fr", label: "France" },
+    { value: "in", label: "India" },
+    { value: "au", label: "Australia" },
+    { value: "jp", label: "Japan" },
+  ],
+  // States and cities will be populated based on country selection
+  states: [],
+  cities: []
+};
+
+// Filter Reset Configuration
+export const defaultFilters = {
+  search: "",
+  leadIntent: "buy" as LeadIntent,
+  leadType: "product" as LeadType,
+  category: "",
+  minBudget: "",
+  maxBudget: "",
+  country: "",
+  state: "",
+  city: "",
+  sortBy: "createdAt",
+  sortOrder: "desc",
+};
+
 // Default values for forms
 export const leadDefaults = {
   currency: "USD",

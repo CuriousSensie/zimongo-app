@@ -54,9 +54,9 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
         try {
           const [savedResponse, upvoteResponse] = await Promise.all([
             Api.checkIfLeadIsSaved(lead._id),
-            Api.checkUpvoteStatus(lead._id)
+            Api.checkUpvoteStatus(lead._id),
           ]);
-          
+
           setIsSaved(savedResponse.data.isSaved);
           setHasUpvoted(upvoteResponse.data.data.hasUpvoted);
         } catch (error) {
@@ -236,7 +236,7 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
       }
     } catch (error: any) {
       console.error("Error toggling upvote:", error);
-      
+
       // Handle specific error cases
       if (error.response?.data?.code === "ALREADY_UPVOTED") {
         setHasUpvoted(true);
@@ -253,11 +253,14 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
           richColors: true,
         });
       } else {
-        toast.error(`Failed to ${hasUpvoted ? 'remove upvote' : 'upvote lead'}`, {
-          description: error.response?.data?.message || "An error occurred",
-          position: "top-center",
-          richColors: true,
-        });
+        toast.error(
+          `Failed to ${hasUpvoted ? "remove upvote" : "upvote lead"}`,
+          {
+            description: error.response?.data?.message || "An error occurred",
+            position: "top-center",
+            richColors: true,
+          }
+        );
       }
     }
   };
@@ -328,6 +331,25 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
 
   const typeInfo = getLeadTypeInfo();
 
+  // helper functions
+  function capitalizeFirstLetter(str: string) {
+    if (str.length === 0) {
+      return "";
+    }
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  function capitalizeEachWord(sentence: string) {
+    return sentence
+      .split(" ")
+      .map((word) => capitalizeFirstLetter(word)) // Using the function from above
+      .join(" ");
+  }
+
+  function cleanText(text: string) {
+    return capitalizeEachWord(text.replace("_", " "));
+  }
+
   // Service cards are shown in list view
   if (lead.leadType === LeadType.SERVICE) {
     return (
@@ -348,7 +370,7 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
             <div className="flex items-center gap-2">
               {typeInfo.icon}
               <Badge variant="outline" className="text-xs">
-                {typeInfo.category}
+                {cleanText(typeInfo.category)}
               </Badge>
             </div>
 
@@ -403,10 +425,7 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
         </div>
 
         <div className="flex flex-row md:flex-col gap-2 w-full md:w-[15vw] mt-4 md:mt-0 justify-center">
-          <div
-            className="flex gap-1"
-            onClick={handleViewDetailsClick}
-          >
+          <div className="flex gap-1" onClick={handleViewDetailsClick}>
             <Button className="w-full" size="sm">
               <ExternalLink className="h-4 w-4" />
               View Details
@@ -512,7 +531,7 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
           <div className="flex items-center gap-2">
             {typeInfo.icon}
             <Badge variant="outline" className="text-xs">
-              {typeInfo.category}
+              {cleanText(typeInfo.category)}
             </Badge>
           </div>
           <div className="flex gap-2 text-sm">
@@ -566,18 +585,13 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
         </div>
 
         <div className="flex gap-2 mt-4">
-          <div
-            className="flex-1"
-            onClick={handleViewDetailsClick}
-          >
+          <div className="flex-1" onClick={handleViewDetailsClick}>
             <Button size="sm" className="w-full">
               View Details
             </Button>
           </div>
           {lead.profileId && (lead.profileId as any)?.slug ? (
-            <div
-              onClick={handleContactClick}
-            >
+            <div onClick={handleContactClick}>
               <Button
                 variant="outline"
                 size="sm"

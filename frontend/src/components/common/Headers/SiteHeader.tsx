@@ -40,7 +40,7 @@ const SiteHeader = ({ className }: { className?: string }) => {
             <Link href="/browse" className="hover:underline">
               Browse Leads
             </Link>
-            <Select value="">
+            <Select value="all">
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Select City" />
               </SelectTrigger>

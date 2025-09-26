@@ -1,10 +1,16 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { Search, Filter, Grid, List } from "lucide-react";
+import { Search, Filter, Grid, List, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { LeadIntent, LeadType, ILead } from "@/types/lead";
 import Api from "@/lib/api";
 import { toast } from "sonner";
@@ -12,6 +18,7 @@ import LeadCard from "./LeadCard";
 import FilterPanel from "./FilterPanel";
 import { Badge } from "@/components/ui/badge";
 import publicApi from "@/lib/publicApi";
+import { defaultFilters, sortingOptions } from "@/constant/lead";
 
 interface BrowseFilters {
   search: string;
@@ -40,17 +47,9 @@ const BrowsePage = () => {
   });
   
   const [filters, setFilters] = useState<BrowseFilters>({
-    search: "",
+    ...defaultFilters,
     leadIntent: LeadIntent.BUY,
     leadType: LeadType.PRODUCT,
-    category: "",
-    minBudget: "",
-    maxBudget: "",
-    country: "",
-    state: "",
-    city: "",
-    sortBy: "createdAt",
-    sortOrder: "desc",
   });
   
   // View mode is now determined by lead type - products use grid, services use list
@@ -117,17 +116,9 @@ const BrowsePage = () => {
 
   const clearFilters = () => {
     setFilters({
-      search: "",
+      ...defaultFilters,
       leadIntent: filters.leadIntent,
       leadType: filters.leadType,
-      category: "",
-      minBudget: "",
-      maxBudget: "",
-      country: "",
-      state: "",
-      city: "",
-      sortBy: "createdAt",
-      sortOrder: "desc",
     });
   };
 
@@ -203,7 +194,7 @@ const BrowsePage = () => {
       {/* Search and Filters */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col lg:flex-row gap-4">
+          <div className="flex flex-col md:flex-row gap-4">
             {/* Search */}
             <form onSubmit={handleSearch} className="flex-1">
               <div className="relative">
@@ -220,7 +211,7 @@ const BrowsePage = () => {
 
             {/* Filter Controls */}
             <div className="flex items-center gap-2">
-              {/* <Button
+              <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setShowFilters(!showFilters)}
@@ -233,18 +224,24 @@ const BrowsePage = () => {
                     {activeFiltersCount}
                   </Badge>
                 )}
-              </Button> */}
+              </Button>
 
               {/* Sort */}
-              {/* <Select
+              <Select
                 value={filters.sortBy}
                 onValueChange={(value) => handleFilterChange("sortBy", value)}
               >
-                <option value="createdAt">Latest</option>
-                <option value="budget">Budget</option>
-                <option value="title">Title</option>
-                <option value="views">Most Viewed</option>
-              </Select> */}
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Sort by..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {sortingOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
@@ -252,16 +249,44 @@ const BrowsePage = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex gap-6">
-          {/* Filter Panel */}
+          {/* Filter Panel - Desktop Sidebar */}
           {showFilters && (
-            <div className="w-80 flex-shrink-0">
-              <FilterPanel
-                filters={filters}
-                onFilterChange={handleFilterChange}
-                onClearFilters={clearFilters}
-                leadType={filters.leadType}
-              />
-            </div>
+            <>
+              {/* Desktop Sidebar */}
+              <div className="hidden lg:block w-80 flex-shrink-0">
+                <FilterPanel
+                  filters={filters}
+                  onFilterChange={handleFilterChange}
+                  onClearFilters={clearFilters}
+                  leadType={filters.leadType}
+                />
+              </div>
+
+              {/* Mobile/Tablet Popup Overlay */}
+              <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-50">
+                <div className="fixed inset-y-0 left-0 w-80 bg-white shadow-lg overflow-y-auto">
+                  <div className="p-4 border-b flex items-center justify-between">
+                    <h2 className="text-lg font-semibold">Filters</h2>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowFilters(false)}
+                      className="p-1"
+                    >
+                      <X className="h-5 w-5" />
+                    </Button>
+                  </div>
+                  <div className="p-4">
+                    <FilterPanel
+                      filters={filters}
+                      onFilterChange={handleFilterChange}
+                      onClearFilters={clearFilters}
+                      leadType={filters.leadType}
+                    />
+                  </div>
+                </div>
+              </div>
+            </>
           )}
 
           {/* Main Content */}
@@ -307,7 +332,7 @@ const BrowsePage = () => {
                 <div
                   className={
                     filters.leadType === LeadType.PRODUCT
-                      ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                      ? `grid grid-cols-1 md:grid-cols-2 ${showFilters ? 'lg:grid-cols-2' : 'lg:grid-cols-3'} gap-6`
                       : "space-y-4 flex flex-col gap-2  mx-auto"
                   }
                 >
