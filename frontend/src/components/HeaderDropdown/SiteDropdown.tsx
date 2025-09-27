@@ -170,6 +170,8 @@ const SiteDropdown = () => {
               });
 
               toast.success("You have been Logout", {
+                position: "top-center",
+                richColors: true,
                 duration: 3000,
                 action: {
                   label: "Close",

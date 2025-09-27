@@ -9,6 +9,8 @@ import { extractSubdomain } from "@/utils/subdomain";
 import Image from "next/image";
 import Avatar from "@/assets/avatar.png";
 import { NEXT_PUBLIC_S3_BASE_URL } from "@/constant/env";
+import { toast } from "sonner";
+
 
 const DropdownUser = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -17,7 +19,6 @@ const DropdownUser = () => {
   const trigger = useRef<any>(null);
   const dropdown = useRef<any>(null);
   const user = useUser();
-  const toast = useToast();
 
   // close on click outside
   useEffect(() => {
@@ -68,7 +69,11 @@ const DropdownUser = () => {
 
         <div className="h-[5vh] w-[5vh] overflow-hidden rounded-full border border-stroke shadow-lg">
           <Image
-            src={user.me?.picture?.path ? `${NEXT_PUBLIC_S3_BASE_URL}/${user.me.picture?.path}` : Avatar}
+            src={
+              user.me?.picture?.path
+                ? `${NEXT_PUBLIC_S3_BASE_URL}/${user.me.picture?.path}`
+                : Avatar
+            }
             alt="Avatar"
             height={42}
             width={42}
@@ -102,32 +107,36 @@ const DropdownUser = () => {
             </Link>
           </li>
         </ul>
-        { user?.me &&
+        {user?.me && (
           <button
-          onClick={() => {
-            // Check if current URL has a subdomain
+            onClick={() => {
+              // Check if current URL has a subdomain
 
-            const hostname = window.location.hostname;
-            const subdomain = extractSubdomain(hostname);
+              const hostname = window.location.hostname;
+              const subdomain = extractSubdomain(hostname);
 
-            let callbackUrl = "/signin";
+              let callbackUrl = "/signin";
 
-            signOut({ callbackUrl }).then(() => {
-              window.location.href = callbackUrl;
-            });
+              signOut({ callbackUrl }).then(() => {
+                window.location.href = callbackUrl;
+              });
 
-            toast({
-              title: "You have been Logout",
-              status: "info",
-              isClosable: true,
-              duration: 3000,
-            });
-          }}
-          className="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-[#1F2937] lg:text-base"
-        >
-          <ArrowLeftFromLine className="w-6 h-6" />
-          Log Out
-        </button>}
+              toast.success("You have been Logout", {
+                position: "top-center",
+                richColors: true,
+                duration: 3000,
+                action: {
+                  label: "Close",
+                  onClick: () => toast.dismiss(),
+                },
+              });
+            }}
+            className="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-[#1F2937] lg:text-base"
+          >
+            <ArrowLeftFromLine className="w-6 h-6" />
+            Log Out
+          </button>
+        )}
       </div>
       {/* <!-- Dropdown End --> */}
     </div>
