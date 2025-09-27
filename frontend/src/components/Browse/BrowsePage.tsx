@@ -17,6 +17,7 @@ import LeadCard from "./LeadCard";
 import FilterPanel from "./FilterPanel";
 import publicApi from "@/lib/publicApi";
 import { defaultFilters, sortingOptions } from "@/constant/lead";
+import { Badge } from "../ui/badge";
 
 interface BrowseFilters {
   search: string;
