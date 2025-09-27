@@ -1,23 +1,30 @@
 import HeroSection from "@/components/HomePage/HeroSection";
-import BrandLogos from "@/components/HomePage/BrandLogos";
 import LatestAds from "@/components/HomePage/LatestLeads";
-import FeaturedAds from "@/components/HomePage/FeaturedAds";
+import FeaturedAds from "@/components/HomePage/FeaturedProfiles";
 import StatsSection from "@/components/HomePage/StatsSection";
 import TestimonialsSection from "@/components/HomePage/Testimonials";
 import BodyTypesSection from "@/components/HomePage/BodyTypesSection";
-import SiteHeader from "../Headers/SiteHeader";
+import SiteHeader from "../common/Headers/SiteHeader";
+import AboutSection from "./AboutSection";
+import FeaturedProfiles from "@/components/HomePage/FeaturedProfiles";
+import ManufacturingSection from "./ManufacturingSection";
+import CTASection from "./CTASection";
+import Footer from "../common/Footer/page";
 
 const Index = () => {
   return (
     <div className="min-h-screen">
       <SiteHeader />
       <HeroSection />
-      <BrandLogos />
-      <FeaturedAds />
-      <LatestAds />
-      <StatsSection />
+      <AboutSection />
+      <FeaturedProfiles />
+      <ManufacturingSection />
+      {/* <LatestAds /> */}
+      {/* <StatsSection /> */}
       <TestimonialsSection />
-      <BodyTypesSection />
+      <CTASection />
+      {/* <BodyTypesSection /> */}
+      <Footer />
     </div>
   );
 };

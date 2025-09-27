@@ -1,4 +1,4 @@
-import { Paperclip, UserCog, ShoppingBasket } from "lucide-react";
+import { Paperclip, UserCog, ShoppingBasket, Bookmark } from "lucide-react";
 import {
   FaStore,
   FaChartLine,
@@ -12,14 +12,15 @@ import {
   FaTruck,
   FaFileInvoice,
   FaPlus,
+  FaUser,
 } from "react-icons/fa6";
 import { FaPiggyBank } from "react-icons/fa6";
-import { FaShieldAlt } from "react-icons/fa";
+import { FaCogs, FaShieldAlt } from "react-icons/fa";
 
 export const getUserSidebarItems = (profileId: string) => [
   {
     label: "Dashboard",
-    href: "/dashboard",
+    href: "/",
     icon: FaGaugeHigh,
     separator: false,
     isTitle: false,
@@ -39,37 +40,53 @@ export const getUserSidebarItems = (profileId: string) => [
     isTitle: false,
   },
   {
+    label: "Saved Leads",
+    href: `/saved-leads`,
+    icon: Bookmark,
+    separator: false,
+    isTitle: false,
+  },
+  {
     label: "Interactions",
     href: `/interactions`,
     icon: FaCircleCheck,
-    separator: true,
+    separator: false,
     isTitle: false,
   },
   {
     label: "Advertise Yourself",
     href: "/advertisements",
     icon: FaGavel,
-    separator: false,
+    separator: true,
     isTitle: false,
+    isDisabled: true,
+  },
+  {
+    label: "Account",
+    href: "/",
+    icon: FaBell,
+    separator: false,
+    isTitle: true,
   },
   {
     label: "Notifications",
     href: "/notifications",
-    icon: FaTruck,
+    icon: FaBell,
     separator: false,
     isTitle: false,
+    isDisabled: true,
   },
   {
     label: "Profile",
     href: "/profile",
-    icon: FaFileInvoice,
+    icon: FaUser,
     separator: false,
     isTitle: false,
   },
   {
     label: "Settings",
     href: `/settings`,
-    icon: FaPiggyBank,
+    icon: FaCogs,
     separator: false,
     isTitle: false,
   },

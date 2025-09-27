@@ -458,4 +458,85 @@ userRouter.put("/reset-password", async (req, res) => {
   }
 });
 
+// update user settings
+userRouter.patch(
+  "/settings",
+  Authentication.User,
+  async (req: CustomRequest, res) => {
+    try {
+      const { user: currentUser } = req.context!;
+      const { is2FA } = req.body;
+
+      console.log("is2FA", is2FA);
+
+      const user = await User.findById(currentUser._id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Update 2FA setting if provided
+      if (typeof is2FA === "boolean") {
+        user.is2FA = is2FA;
+      }
+
+      await user.save();
+
+      return res.status(200).json({
+        message: "Settings updated successfully",
+        user: {
+          _id: user._id,
+          email: user.email,
+          name: user.name,
+          is2FA: user.is2FA,
+          isEmailVerified: user.isEmailVerified,
+          profileSlug: user.profileSlug,
+          picture: user.picture,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+        },
+      });
+    } catch (error) {
+      logger.error((error as Error).message);
+      return res.status(500).json({ message: (error as Error).message });
+    }
+  }
+);
+
+// get user settings
+userRouter.get(
+  "/settings",
+  Authentication.User,
+  async (req: CustomRequest, res) => {
+    try {
+      const { user: currentUser } = req.context!;
+
+      const user = await User.findById(currentUser._id).select(
+        "-password -resetToken -emailVerifyToken -otp -otpExpiry"
+      );
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      return res.status(200).json({
+        user: {
+          _id: user._id,
+          email: user.email,
+          name: user.name,
+          is2FA: user.is2FA,
+          isEmailVerified: user.isEmailVerified,
+          profileSlug: user.profileSlug,
+          picture: user.picture,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+          knownIps: user.knownIps,
+          knownLocation: user.knownLocation,
+        },
+      });
+    } catch (error) {
+      logger.error((error as Error).message);
+      return res.status(500).json({ message: (error as Error).message });
+    }
+  }
+);
+
 export default userRouter;

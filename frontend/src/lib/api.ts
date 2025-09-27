@@ -66,6 +66,15 @@ export class API {
     );
   }
 
+  //  USER APIS
+  getUserSettings() {
+    return this.instance.get("/user/settings");
+  }
+
+  updateUserSettings(is2FA: boolean) {
+    return this.instance.patch("/user/settings", { is2FA });
+  }
+
   getUserLocation() {
     return this.instance.get("/user/location");
   }
@@ -97,6 +106,11 @@ export class API {
 
   getProfileBySlug(slug: string) {
     return this.instance.get(`/profile/slug/${slug}`);
+  }
+
+  // USER ANALYTICS
+  getUserDashboardAnalytics() {
+    return this.instance.get(`/analytics/dashboard`);
   }
 
   // FILE APIS
@@ -150,7 +164,11 @@ export class API {
   }
 
   getLeadById(id: string) {
-    return this.instance.get(`/lead/${id}`);
+    return this.instance.get(`/lead/lead-by-id/${id}`);
+  }
+
+  incrementLeadView(id: string) {
+    return this.instance.post(`/lead/${id}/view`);
   }
 
   updateLead(id: string, leadData: any) {
@@ -163,6 +181,10 @@ export class API {
 
   updateLeadStatus(id: string, status: string) {
     return this.instance.patch(`/lead/${id}/status`, { status });
+  }
+
+  extendLeadExpiry(id: string) {
+    return this.instance.patch(`/lead/${id}/extend-expiry`);
   }
 
 
@@ -179,6 +201,50 @@ export class API {
     limit?: number
   }) {
     return this.instance.get(`/lead/profile/${profileId}`, { params });
+  }
+
+  saveLead(leadId: string) {
+    return this.instance.post(`/lead/save/${leadId}`);
+  }
+
+  unsaveLead(leadId: string) {
+    return this.instance.delete(`/lead/unsave/${leadId}`);
+  }
+
+  getSavedLeads(params?: { page?: number; limit?: number }) {
+    return this.instance.get("/lead/saved", { params });
+  }
+
+  checkIfLeadIsSaved(leadId: string) {
+    return this.instance.get(`/lead/is-saved/${leadId}`);
+  }
+
+  trackInteraction(leadId: string, type: string, content?: string) {
+    return this.instance.post(`/interaction/create`, { leadId, type, content });
+  }
+
+  getUserInteractions(params: { page?: number; limit?: number }) {
+    return this.instance.get("/interaction/my", { params });
+  }
+
+  getLeadInteractions(leadId: string, params: { page?: number; limit?: number; type?: string }) {
+    return this.instance.get(`/interaction/lead/${leadId}`, { params });
+  }
+
+  getInteractionStats(leadId: string) {
+    return this.instance.get(`/interaction/stats/${leadId}`);
+  }
+
+  checkUpvoteStatus(leadId: string) {
+    return this.instance.get(`/interaction/check-upvote/${leadId}`);
+  }
+
+  removeUpvote(leadId: string) {
+    return this.instance.delete(`/interaction/upvote/${leadId}`);
+  }
+
+  addUpvote(leadId: string) {
+    return this.instance.post(`/interaction/create`, { leadId, type: "upvote", content: "This lead got a new upvote." });
   }
 
 }

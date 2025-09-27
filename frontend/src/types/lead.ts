@@ -55,10 +55,29 @@ export interface LeadFile {
 }
 
 export interface Interactions {
+  _id?: string;
   type: string;
   interactorId: string;
   timestamp: Date;
   content: string;
+}
+
+export interface Interaction {
+  _id: string;
+  interactorId: string;
+  type: string;
+  content: string;
+  timestamp: Date;
+  leadId: {
+    _id: string;
+    title: string;
+    leadType: string;
+    leadIntent: string;
+    profileId?: {
+      companyName: string;
+      slug: string;
+    };
+  };
 }
 
 // Interface for Product Information
@@ -147,7 +166,6 @@ export interface ILead {
   // Engagement tracking
   views: number;
   upvotes: number;
-  interactions: Interactions[];
   isPublic: boolean;
   isFeatured: boolean;
 

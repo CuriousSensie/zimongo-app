@@ -6,6 +6,7 @@ import Lead, {
   ProductInfo,
   ServiceInfo,
 } from "../models/Lead";
+import Interaction, { InteractionType } from "../models/Interaction";
 import User from "../models/User";
 import Profile from "../models/Profile";
 import Authentication from "../middleware/auth";
@@ -16,6 +17,7 @@ import { Types } from "mongoose";
 import Permission from "../models/Permission";
 import { generateOtp } from "../lib/otp";
 import { sendGridGuide } from "../lib/email/SendGridGuide";
+import SavedLead from "../models/SavedLead";
 
 const leadRouter = express.Router();
 
@@ -315,6 +317,16 @@ leadRouter.get(
         sortOrder = "desc",
       } = req.query;
 
+      // update expired leads (leads that have expired but their statistus is notupdated yet)
+      await Lead.updateMany(
+        {
+          userId,
+          expiryDate: { $lt: new Date() },
+          status: { $ne: "expired" }
+        },
+        { status: "expired" }
+      );
+
       // Build filter query
       const filter: any = { userId };
       if (search && search !== "") {
@@ -406,7 +418,7 @@ leadRouter.get(
 
 // Get a specific lead by ID (authenticated route)
 leadRouter.get(
-  "/:id",
+  "/lead-by-id/:id",
   Authentication.User,
   async (req: CustomRequest, res: Response) => {
     try {
@@ -428,6 +440,39 @@ leadRouter.get(
       logger.error("Error fetching lead:", error);
       res.status(500).json({
         message: "Failed to fetch lead",
+        error: error.message
+      });
+    }
+  }
+);
+
+// Increment view count for a lead
+leadRouter.post(
+  "/:id/view",
+  async (req: CustomRequest, res: Response) => {
+    try {
+      const { id } = req.params;
+
+      if (!Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ message: "Invalid lead ID" });
+      }
+
+      const lead = await Lead.findById(id);
+      if (!lead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+
+      // Increment the view count
+      await lead.incrementViews();
+
+      res.status(200).json({
+        message: "View count incremented successfully",
+        views: lead.views
+      });
+    } catch (error: any) {
+      logger.error("Error incrementing view count:", error);
+      res.status(500).json({
+        message: "Failed to increment view count",
         error: error.message
       });
     }
@@ -808,6 +853,64 @@ leadRouter.patch(
   }
 );
 
+// Extend lead expiry
+leadRouter.patch(
+  "/:id/extend-expiry",
+  Authentication.User,
+  async (req: CustomRequest, res: Response) => {
+    try {
+      const userId = req?.context?.user?.id;
+      const { id } = req.params;
+
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      // Find the lead and check ownership
+      const lead = await Lead.findById(id);
+      if (!lead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+
+      if (lead.userId.toString() !== userId) {
+        return res
+          .status(403)
+          .json({ message: "Not authorized to update this lead" });
+      }
+
+      // Extend expiry by 30 days from now
+      const newExpiryDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      lead.expiryDate = newExpiryDate;
+      
+      // If the lead was expired, reactivate it to inactive status so user can verify/activate
+      if (lead.status === "expired") {
+        lead.status = lead.isVerified ? "active" : "inactive";
+      }
+      
+      await lead.save();
+
+      logger.info(`Lead expiry extended successfully by user ${userId}`, {
+        leadId: id,
+        newExpiryDate: newExpiryDate.toISOString(),
+      });
+
+      res.status(200).json({
+        message: "Lead expiry extended successfully",
+        data: { 
+          expiryDate: lead.expiryDate,
+          status: lead.status
+        },
+      });
+    } catch (error: any) {
+      logger.error("Error extending lead expiry:", error);
+      res.status(500).json({
+        message: "Failed to extend lead expiry",
+        error: error.message,
+      });
+    }
+  }
+);
+
 // Upload files for a lead
 leadRouter.post(
   "/:id/upload",
@@ -878,5 +981,277 @@ leadRouter.post(
     }
   }
 );
+
+// Save a lead
+leadRouter.post(
+  "/save/:leadId",
+  Authentication.User,
+  async (req: CustomRequest, res: Response) => {
+    try {
+      const userId = req.context?.user?.id;
+      const { leadId } = req.params;
+
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      // Check if user has a profile
+      const user = await User.findById(userId);
+      if (!user?.profileSlug) {
+        return res.status(403).json({ 
+          message: "Only users with profiles can save leads. Please complete your profile setup first." 
+        });
+      }
+
+      // Check if lead exists
+      const lead = await Lead.findById(leadId);
+      if (!lead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+
+      if (!lead.isPublic || lead.status !== "active") {
+        return res.status(403).json({ message: "Lead is not available for saving" });
+      }
+
+      // Check if already saved
+      const existingSave = await SavedLead.findOne({ userId, leadId });
+      if (existingSave) {
+        return res.status(400).json({ message: "Lead already saved" });
+      }
+
+      // Save the lead
+      const savedLead = new SavedLead({
+        userId,
+        leadId
+      });
+      await savedLead.save();
+
+      // Add interaction
+      const interaction = new Interaction({
+        leadId: new Types.ObjectId(leadId),
+        interactorId: new Types.ObjectId(userId),
+        type: InteractionType.SAVE,
+        content: "User saved this Lead."
+      });
+      await interaction.save();
+
+      res.status(201).json({
+        message: "Lead saved successfully",
+        data: savedLead
+      });
+    } catch (error: any) {
+      logger.error("Error saving lead:", error);
+      res.status(500).json({
+        message: "Failed to save lead",
+        error: error.message
+      });
+    }
+  }
+);
+
+// Unsave a lead
+leadRouter.delete(
+  "/unsave/:leadId",
+  Authentication.User,
+  async (req: CustomRequest, res: Response) => {
+    try {
+      const userId = req.context?.user?.id;
+      const { leadId } = req.params;
+
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      // Remove the saved lead
+      const deletedSave = await SavedLead.findOneAndDelete({ userId, leadId });
+      if (!deletedSave) {
+        return res.status(404).json({ message: "Saved lead not found" });
+      }
+
+      // Add interaction for unsaving
+      const lead = await Lead.findById(leadId);
+      if (lead) {
+        const interaction = new Interaction({
+          leadId: new Types.ObjectId(leadId),
+          interactorId: new Types.ObjectId(userId),
+          type: InteractionType.UNSAVE,
+          content: "User unsaved this lead."
+        });
+        await interaction.save();
+      }
+
+      res.status(200).json({
+        message: "Lead unsaved successfully"
+      });
+    } catch (error: any) {
+      logger.error("Error unsaving lead:", error);
+      res.status(500).json({
+        message: "Failed to unsave lead",
+        error: error.message
+      });
+    }
+  }
+);
+
+// Get user's saved leads
+leadRouter.get(
+  "/saved",
+  Authentication.User,
+  async (req: CustomRequest, res: Response) => {
+    try {
+      const userId = req.context?.user?.id;
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const skip = (page - 1) * limit;
+
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      // Get saved leads with populated lead data
+      const savedLeads = await SavedLead.find({ userId })
+        .populate({
+          path: "leadId",
+          match: { status: "active", isPublic: true }, // Only show active public leads
+          populate: {
+            path: "profileId",
+            select: "companyName slug"
+          }
+        })
+        .sort({ savedAt: -1 })
+        .skip(skip)
+        .limit(limit);
+
+      // Filter out saved leads where the lead was deleted or is no longer available
+      const validSavedLeads = savedLeads.filter(savedLead => savedLead.leadId);
+
+      // Get total count
+      const totalSavedLeads = await SavedLead.countDocuments({ userId });
+
+      res.status(200).json({
+        message: "Saved leads retrieved successfully",
+        data: {
+          savedLeads: validSavedLeads,
+          pagination: {
+            currentPage: page,
+            totalPages: Math.ceil(totalSavedLeads / limit),
+            totalSavedLeads,
+            hasNext: page * limit < totalSavedLeads,
+            hasPrev: page > 1
+          }
+        }
+      });
+    } catch (error: any) {
+      logger.error("Error fetching saved leads:", error);
+      res.status(500).json({
+        message: "Failed to fetch saved leads",
+        error: error.message
+      });
+    }
+  }
+);
+
+// Check if a lead is saved by the current user
+leadRouter.get(
+  "/is-saved/:leadId",
+  Authentication.User,
+  async (req: CustomRequest, res: Response) => {
+    try {
+      const userId = req.context?.user?.id;
+      const { leadId } = req.params;
+
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const savedLead = await SavedLead.findOne({ userId, leadId });
+      
+      res.status(200).json({
+        isSaved: !!savedLead
+      });
+    } catch (error: any) {
+      logger.error("Error checking saved status:", error);
+      res.status(500).json({
+        message: "Failed to check saved status",
+        error: error.message
+      });
+    }
+  }
+);
+
+// Track lead interaction
+leadRouter.post(
+  "/:leadId/interaction",
+  Authentication.User,
+  async (req: CustomRequest, res: Response) => {
+    try {
+      const userId = req.context?.user?.id;
+      const { leadId } = req.params;
+      const { type, content } = req.body;
+
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      if (!type) {
+        return res.status(400).json({ message: "Interaction type is required" });
+      }
+
+      // Valid interaction types
+      const validTypes = [InteractionType.VIEW_DETAILS, InteractionType.VIEW_PROFILE, InteractionType.UPVOTE];
+      if (!validTypes.includes(type)) {
+        return res.status(400).json({ message: "Invalid interaction type" });
+      }
+
+      const lead = await Lead.findById(leadId);
+      if (!lead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+
+      // For upvotes, check if user has already upvoted this lead (as a fallback)
+      if (type === InteractionType.UPVOTE) {
+        const existingUpvote = await Interaction.findOne({
+          leadId: new Types.ObjectId(leadId),
+          interactorId: new Types.ObjectId(userId),
+          type: InteractionType.UPVOTE
+        });
+
+        if (existingUpvote) {
+          return res.status(400).json({ 
+            message: "You have already upvoted this lead",
+            code: "ALREADY_UPVOTED"
+          });
+        }
+      }
+
+      // Create interaction
+      const interaction = new Interaction({
+        leadId: new Types.ObjectId(leadId),
+        interactorId: new Types.ObjectId(userId),
+        type,
+        content: content || `User ${type.replace('_', ' ')}`
+      });
+      await interaction.save();
+
+      // If it's an upvote, increment the upvotes count
+      if (type === InteractionType.UPVOTE) {
+        lead.upvotes += 1;
+        await lead.save();
+      }
+
+      res.status(200).json({
+        message: "Interaction tracked successfully",
+        data: { type, timestamp: new Date() }
+      });
+    } catch (error: any) {
+      logger.error("Error tracking interaction:", error);
+      res.status(500).json({
+        message: "Failed to track interaction",
+        error: error.message
+      });
+    }
+  }
+);
+
 
 export default leadRouter;

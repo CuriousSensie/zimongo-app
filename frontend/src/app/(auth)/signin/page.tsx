@@ -118,7 +118,7 @@ const SignIn: React.FC = () => {
             router.replace("/"); // admin dashboard
           } else {
             if (isASubdomain) {
-              router.replace(`/dashboard`);
+              router.replace(`/`);
             } else router.replace("/"); // user redirect
           }
         }

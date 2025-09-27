@@ -70,7 +70,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, items }: SidebarProps) => {
         </button>
         
         <Link
-          href="/dashboard"
+          href="/"
           className="flex items-center gap-2 text-2xl font-bold text-white"
         >
           <FullTextLogo />
@@ -92,16 +92,16 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, items }: SidebarProps) => {
 
           // if disabled, then show a tooltip
           const disabledClass = item.isDisabled
-            ? "opacity-50 cursor-not-allowed"
+            ? "opacity-80 cursor-not-allowed hover:bg-transparent hover:text-[#4B5563]"
             : "";
 
           return (
             <React.Fragment key={index}>
               {!item.isTitle && (
                 <li key={`${item.label}-${index}`}>
-                  {item.isDisabled ? (
+                  {item?.isDisabled ? (
                     <Tooltip
-                      content="This feature is currently disabled"
+                      content="This feature is currently unavailable."
                       showArrow={true}
                     >
                       <div

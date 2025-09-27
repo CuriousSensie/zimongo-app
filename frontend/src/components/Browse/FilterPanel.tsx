@@ -4,9 +4,23 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { LeadType } from "@/types/lead";
-import { X, RotateCcw } from "lucide-react";
+import { X, RotateCcw, Clock, DollarSign, Eye, ThumbsUp } from "lucide-react";
+import { 
+  productCategories, 
+  serviceCategories, 
+  sortingOptions,
+  sortOrderOptions,
+  budgetRanges,
+  locationFilters 
+} from "@/constant/lead";
 
 interface BrowseFilters {
   search: string;
@@ -35,89 +49,19 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   onClearFilters,
   leadType,
 }) => {
-  // Product categories
-  const productCategories = [
-    "Electronics & Technology",
-    "Machinery & Equipment",
-    "Automotive & Transportation",
-    "Construction & Building Materials",
-    "Textiles & Apparel",
-    "Food & Beverages",
-    "Chemicals & Materials",
-    "Medical & Healthcare",
-    "Agriculture & Farming",
-    "Energy & Environment",
-    "Sports & Recreation",
-    "Home & Garden",
-    "Office & Business",
-    "Industrial Supplies",
-    "Raw Materials",
-    "Packaging & Printing",
-    "Safety & Security",
-    "Tools & Hardware",
-    "Furniture & Fixtures",
-    "Other Products",
-  ];
+  const getIconComponent = (iconName: string) => {
+    switch (iconName) {
+      case "clock": return <Clock className="h-4 w-4" />;
+      case "dollar-sign": return <DollarSign className="h-4 w-4" />;
+      case "eye": return <Eye className="h-4 w-4" />;
+      case "thumbs-up": return <ThumbsUp className="h-4 w-4" />;
+      default: return null;
+    }
+  };
 
-  // Service categories
-  const serviceCategories = [
-    "IT & Software Development",
-    "Digital Marketing & SEO",
-    "Consulting & Business Services",
-    "Design & Creative Services",
-    "Manufacturing & Production",
-    "Logistics & Transportation",
-    "Construction & Engineering",
-    "Financial & Legal Services",
-    "Healthcare & Medical",
-    "Education & Training",
-    "Maintenance & Repair",
-    "Research & Development",
-    "Quality Assurance & Testing",
-    "Installation & Setup",
-    "Customer Support",
-    "Data Entry & Processing",
-    "Translation & Language",
-    "Event Management",
-    "Cleaning & Facility Management",
-    "Other Services",
-  ];
+  const currentCategories = leadType === LeadType.PRODUCT ? productCategories : serviceCategories;
 
-  const categories = leadType === LeadType.PRODUCT ? productCategories : serviceCategories;
-
-  const countries = [
-    "United States",
-    "Canada",
-    "United Kingdom",
-    "Germany",
-    "France",
-    "Australia",
-    "India",
-    "China",
-    "Japan",
-    "Brazil",
-    "Mexico",
-    "South Africa",
-    "Nigeria",
-    "Egypt",
-    "UAE",
-    "Singapore",
-    "South Korea",
-    "Italy",
-    "Spain",
-    "Netherlands",
-  ];
-
-  const budgetRanges = [
-    { label: "Under $1,000", min: "0", max: "1000" },
-    { label: "$1,000 - $5,000", min: "1000", max: "5000" },
-    { label: "$5,000 - $10,000", min: "5000", max: "10000" },
-    { label: "$10,000 - $50,000", min: "10000", max: "50000" },
-    { label: "$50,000 - $100,000", min: "50000", max: "100000" },
-    { label: "$100,000+", min: "100000", max: "" },
-  ];
-
-  const handleBudgetRangeSelect = (min: string, max: string) => {
+  const handleBudgetRange = (min: string, max: string) => {
     onFilterChange("minBudget", min);
     onFilterChange("maxBudget", max);
   };
@@ -157,12 +101,17 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             value={filters.category}
             onValueChange={(value) => onFilterChange("category", value)}
           >
-            <option value="">All Categories</option>
-            {categories.map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
+            <SelectTrigger className="bg-white">
+              <SelectValue placeholder="All Categories" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              {currentCategories.map((category) => (
+                <SelectItem key={category.value} value={category.value}>
+                  {category.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
           </Select>
         </div>
 
@@ -175,7 +124,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             {budgetRanges.map((range) => (
               <button
                 key={range.label}
-                onClick={() => handleBudgetRangeSelect(range.min, range.max)}
+                onClick={() => handleBudgetRange(range.min, range.max)}
                 className={`w-full text-left px-3 py-2 text-sm rounded-md border transition-colors ${
                   filters.minBudget === range.min && filters.maxBudget === range.max
                     ? "bg-blue-50 border-blue-200 text-blue-700"
@@ -218,12 +167,13 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
               value={filters.country}
               onValueChange={(value) => onFilterChange("country", value)}
             >
-              <option value="">All Countries</option>
-              {countries.map((country) => (
-                <option key={country} value={country}>
-                  {country}
-                </option>
-              ))}
+              <SelectTrigger className="bg-white">
+                <SelectValue placeholder="All Countries" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Countries</SelectItem>
+                
+              </SelectContent>
             </Select>
 
             <Input
@@ -254,19 +204,38 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
               value={filters.sortBy}
               onValueChange={(value) => onFilterChange("sortBy", value)}
             >
-              <option value="createdAt">Date Created</option>
-              <option value="budget">Budget</option>
-              <option value="title">Title</option>
-              <option value="views">Views</option>
-              <option value="priority">Priority</option>
+              <SelectTrigger className="bg-white">
+                <SelectValue placeholder="Sort by..." />
+              </SelectTrigger>
+              <SelectContent>
+                {sortingOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    <div className="flex items-center gap-2">
+                      {getIconComponent(option.icon)}
+                      <div>
+                        <div className="font-medium">{option.label}</div>
+                        <div className="text-xs text-gray-500">{option.description}</div>
+                      </div>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
 
             <Select
               value={filters.sortOrder}
               onValueChange={(value) => onFilterChange("sortOrder", value)}
             >
-              <option value="desc">Descending</option>
-              <option value="asc">Ascending</option>
+              <SelectTrigger className="bg-white">
+                <SelectValue placeholder="Order..." />
+              </SelectTrigger>
+              <SelectContent>
+                {sortOrderOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
           </div>
         </div>

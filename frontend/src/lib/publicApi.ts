@@ -110,6 +110,11 @@ export class PublicApi {
   getLeadById(id: string) {
     return this.instance.get(`/lead/${id}`);
   }
+
+  // increment view count for a lead
+  incrementLeadView(id: string) {
+    return this.instance.post(`/lead/${id}/view`);
+  }
 }
 
 const publicApi = new PublicApi();

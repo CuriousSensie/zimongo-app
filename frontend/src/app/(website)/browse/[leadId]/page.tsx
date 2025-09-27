@@ -22,12 +22,16 @@ import {
   MessageCircle,
   Phone,
   Mail,
+  Bookmark,
+  BookmarkCheck,
+  ThumbsUp,
 } from "lucide-react";
 import { locationService } from "@/utils/country-state-city";
 import ImageCarousel from "@/components/common/ImageCarousel";
-import SiteHeader from "@/components/Headers/SiteHeader";
-import publicApi from "@/lib/publicApi";
+import SiteHeader from "@/components/common/Headers/SiteHeader";
 import Api from "@/lib/api";
+import { markLeadAsViewed } from "@/hooks/useViewTracking";
+import useUser from "@/hooks/useUser";
 
 const BrowseLeadDetailPage = () => {
   const params = useParams();
@@ -37,17 +41,35 @@ const BrowseLeadDetailPage = () => {
   const [country, setCountry] = useState<string | null>(null);
   const [state, setState] = useState<string | null>(null);
   const [isLiked, setIsLiked] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
+  const { me, isAuthenticated } = useUser();
 
   const leadId = params.leadId as string;
 
   useEffect(() => {
     const fetchLead = async () => {
       try {
+        if (!isAuthenticated || !leadId) {
+          return;
+        }
         setLoading(true);
         const response = await Api.getLeadById(leadId);
-        
+
         if (response.status === 200) {
           setLead(response.data.data);
+          // Increment view count when lead details are successfully loaded
+          await markLeadAsViewed(leadId);
+
+          // Check if lead is saved by current user
+          if (isAuthenticated && me) {
+            try {
+              const savedResponse = await Api.checkIfLeadIsSaved(leadId);
+              setIsSaved(savedResponse.data.isSaved);
+            } catch (error) {
+              // silently fail
+            }
+          }
         }
       } catch (error) {
         console.error("Error fetching lead:", error);
@@ -56,7 +78,6 @@ const BrowseLeadDetailPage = () => {
           richColors: true,
           description: (error as Error).message,
         });
-        // router.push("/browse");
       } finally {
         setLoading(false);
       }
@@ -149,6 +170,39 @@ const BrowseLeadDetailPage = () => {
     toast.success(isLiked ? "Removed from favorites" : "Added to favorites");
   };
 
+  const handleSaveToggle = async () => {
+    if (!isAuthenticated) {
+      toast.error("Please sign in to save leads", {
+        position: "top-center",
+        richColors: true,
+        action: { label: "Sign In", onClick: () => router.push("/signin") },
+        duration: 5000,
+      });
+      return;
+    }
+
+    if (!leadId) return;
+
+    setSaveLoading(true);
+    try {
+      if (isSaved) {
+        await Api.unsaveLead(leadId);
+        setIsSaved(false);
+        toast.success("Lead removed from saved");
+      } else {
+        await Api.saveLead(leadId);
+        setIsSaved(true);
+        toast.success("Lead saved to your dashboard");
+      }
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message || "Failed to save lead";
+      toast.error(errorMessage);
+    } finally {
+      setSaveLoading(false);
+    }
+  };
+
   const handleContact = () => {
     if (lead?.profileId && (lead.profileId as any)?.slug) {
       window.location.href = `/profiles/${(lead.profileId as any).slug}`;
@@ -167,6 +221,24 @@ const BrowseLeadDetailPage = () => {
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
               <p className="text-slate-600">Loading lead details...</p>
             </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <SiteHeader />
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center py-12">
+            <p className="text-slate-500 text-lg">
+              Sign in to view lead details.
+            </p>
+            <Button onClick={() => router.push("/signin")} className="mt-4">
+              Sign in
+            </Button>
           </div>
         </div>
       </div>
@@ -192,7 +264,7 @@ const BrowseLeadDetailPage = () => {
   return (
     <div className="min-h-screen bg-slate-50">
       <SiteHeader />
-      
+
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Breadcrumb Navigation */}
         <div className="mb-6">
@@ -248,13 +320,18 @@ const BrowseLeadDetailPage = () => {
 
               {/* Action Buttons */}
               <div className="flex flex-wrap gap-3">
-                <Button onClick={handleContact} className="bg-blue-600 hover:bg-blue-700">
+                <Button
+                  onClick={handleContact}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
                   <MessageCircle className="w-4 h-4 mr-2" />
                   Contact Seller
                 </Button>
                 <Button variant="outline" onClick={handleLike}>
-                  <Heart className={`w-4 h-4 mr-2 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
-                  {isLiked ? 'Saved' : 'Save'}
+                  <Heart
+                    className={`w-4 h-4 mr-2 ${isLiked ? "fill-red-500 text-red-500" : ""}`}
+                  />
+                  {isLiked ? "Saved" : "Save"}
                 </Button>
                 <Button variant="outline" onClick={handleShare}>
                   <Share2 className="w-4 h-4 mr-2" />
@@ -264,15 +341,17 @@ const BrowseLeadDetailPage = () => {
             </div>
 
             {/* Product Images */}
-            {lead.leadType === "product" && lead.productInfo?.productFiles && lead.productInfo.productFiles.length > 0 && (
-              <div className="bg-white rounded-xl shadow-sm border p-8">
-                <ImageCarousel 
-                  images={lead.productInfo.productFiles} 
-                  className="w-full"
-                  showImageDetails={false}
-                />
-              </div>
-            )}
+            {lead.leadType === "product" &&
+              lead.productInfo?.productFiles &&
+              lead.productInfo.productFiles.length > 0 && (
+                <div className="bg-white rounded-xl shadow-sm border p-8">
+                  <ImageCarousel
+                    images={lead.productInfo.productFiles}
+                    className="w-full"
+                    showImageDetails={false}
+                  />
+                </div>
+              )}
 
             {/* Product Details */}
             {lead.leadType === "product" && lead.productInfo && (
@@ -290,26 +369,34 @@ const BrowseLeadDetailPage = () => {
                       </h3>
                       <div className="space-y-4">
                         <div>
-                          <p className="text-sm font-medium text-slate-500 mb-1">Product Name</p>
+                          <p className="text-sm font-medium text-slate-500 mb-1">
+                            Product Name
+                          </p>
                           <p className="text-slate-900 font-medium">
                             {lead.productInfo.productName}
                           </p>
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-slate-500 mb-1">Category</p>
+                          <p className="text-sm font-medium text-slate-500 mb-1">
+                            Category
+                          </p>
                           <p className="text-slate-900">
                             {lead.productInfo.productCategory}
                           </p>
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-slate-500 mb-1">Description</p>
+                          <p className="text-sm font-medium text-slate-500 mb-1">
+                            Description
+                          </p>
                           <p className="text-slate-900">
                             {lead.productInfo.productDescription}
                           </p>
                         </div>
                         {lead.productInfo.brandOrModel && (
                           <div>
-                            <p className="text-sm font-medium text-slate-500 mb-1">Brand/Model</p>
+                            <p className="text-sm font-medium text-slate-500 mb-1">
+                              Brand/Model
+                            </p>
                             <p className="text-slate-900">
                               {lead.productInfo.brandOrModel}
                             </p>
@@ -336,7 +423,9 @@ const BrowseLeadDetailPage = () => {
                         </div>
                         {lead.productInfo.budgetPerUnit && (
                           <div>
-                            <p className="text-sm font-medium text-slate-500 mb-1">Budget per Unit</p>
+                            <p className="text-sm font-medium text-slate-500 mb-1">
+                              Budget per Unit
+                            </p>
                             <p className="text-slate-900 font-semibold">
                               {lead.currency} {lead.productInfo.budgetPerUnit}
                             </p>
@@ -348,19 +437,25 @@ const BrowseLeadDetailPage = () => {
                               Expected Delivery
                             </p>
                             <p className="text-slate-900">
-                              {formatDate(lead.productInfo.expectedDeliveryDate)}
+                              {formatDate(
+                                lead.productInfo.expectedDeliveryDate
+                              )}
                             </p>
                           </div>
                         )}
                         <div>
-                          <p className="text-sm font-medium text-slate-500 mb-1">Delivery Location</p>
+                          <p className="text-sm font-medium text-slate-500 mb-1">
+                            Delivery Location
+                          </p>
                           <p className="text-slate-900">
                             {lead.productInfo.deliveryLocation}
                           </p>
                         </div>
                         {lead.productInfo.dimensions && (
                           <div>
-                            <p className="text-sm font-medium text-slate-500 mb-1">Dimensions</p>
+                            <p className="text-sm font-medium text-slate-500 mb-1">
+                              Dimensions
+                            </p>
                             {lead.productInfo.dimensions.length ? (
                               <p className="text-slate-900">
                                 {lead.productInfo.dimensions.length} ×{" "}
@@ -375,7 +470,9 @@ const BrowseLeadDetailPage = () => {
                         )}
                         {lead.productInfo.weight && (
                           <div>
-                            <p className="text-sm font-medium text-slate-500 mb-1">Weight</p>
+                            <p className="text-sm font-medium text-slate-500 mb-1">
+                              Weight
+                            </p>
                             <p className="text-slate-900">
                               {lead.productInfo.weight.value}{" "}
                               {lead.productInfo.weight.unit}
@@ -416,37 +513,49 @@ const BrowseLeadDetailPage = () => {
                       </h3>
                       <div className="space-y-4">
                         <div>
-                          <p className="text-sm font-medium text-slate-500 mb-1">Service Name</p>
+                          <p className="text-sm font-medium text-slate-500 mb-1">
+                            Service Name
+                          </p>
                           <p className="text-slate-900 font-medium">
                             {lead.serviceInfo.serviceName}
                           </p>
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-slate-500 mb-1">Category</p>
+                          <p className="text-sm font-medium text-slate-500 mb-1">
+                            Category
+                          </p>
                           <p className="text-slate-900">
                             {lead.serviceInfo.serviceCategory}
                           </p>
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-slate-500 mb-1">Description</p>
+                          <p className="text-sm font-medium text-slate-500 mb-1">
+                            Description
+                          </p>
                           <p className="text-slate-900">
                             {lead.serviceInfo.serviceDescription}
                           </p>
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-slate-500 mb-1">Type of Service</p>
+                          <p className="text-sm font-medium text-slate-500 mb-1">
+                            Type of Service
+                          </p>
                           <p className="text-slate-900">
                             {lead.serviceInfo.typeOfService}
                           </p>
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-slate-500 mb-1">Location</p>
+                          <p className="text-sm font-medium text-slate-500 mb-1">
+                            Location
+                          </p>
                           <p className="text-slate-900">
                             {lead.serviceInfo.locationOfService}
                           </p>
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-slate-500 mb-1">Remote Service</p>
+                          <p className="text-sm font-medium text-slate-500 mb-1">
+                            Remote Service
+                          </p>
                           <p className="text-slate-900">
                             {lead.serviceInfo.isRemote ? "Yes" : "No"}
                           </p>
@@ -463,7 +572,9 @@ const BrowseLeadDetailPage = () => {
                       <div className="space-y-4">
                         {lead.serviceInfo.startDate && (
                           <div>
-                            <p className="text-sm font-medium text-slate-500 mb-1">Start Date</p>
+                            <p className="text-sm font-medium text-slate-500 mb-1">
+                              Start Date
+                            </p>
                             <p className="text-slate-900">
                               {formatDate(lead.serviceInfo.startDate)}
                             </p>
@@ -471,7 +582,9 @@ const BrowseLeadDetailPage = () => {
                         )}
                         {lead.serviceInfo.endDate && (
                           <div>
-                            <p className="text-sm font-medium text-slate-500 mb-1">End Date</p>
+                            <p className="text-sm font-medium text-slate-500 mb-1">
+                              End Date
+                            </p>
                             <p className="text-slate-900">
                               {formatDate(lead.serviceInfo.endDate)}
                             </p>
@@ -479,7 +592,9 @@ const BrowseLeadDetailPage = () => {
                         )}
                         {lead.serviceInfo.serviceFrequency && (
                           <div>
-                            <p className="text-sm font-medium text-slate-500 mb-1">Frequency</p>
+                            <p className="text-sm font-medium text-slate-500 mb-1">
+                              Frequency
+                            </p>
                             <p className="text-slate-900">
                               {lead.serviceInfo.serviceFrequency}
                             </p>
@@ -487,7 +602,9 @@ const BrowseLeadDetailPage = () => {
                         )}
                         {lead.serviceInfo.budgetEstimate && (
                           <div>
-                            <p className="text-sm font-medium text-slate-500 mb-1">Budget Estimate</p>
+                            <p className="text-sm font-medium text-slate-500 mb-1">
+                              Budget Estimate
+                            </p>
                             <p className="text-slate-900 font-semibold ">
                               {lead.currency}{" "}
                               {lead.serviceInfo.budgetEstimate.toLocaleString()}
@@ -496,7 +613,9 @@ const BrowseLeadDetailPage = () => {
                         )}
                         {lead.serviceInfo.skillsOrExpertiseNeeded && (
                           <div>
-                            <p className="text-sm font-medium text-slate-500 mb-1">Required Skills</p>
+                            <p className="text-sm font-medium text-slate-500 mb-1">
+                              Required Skills
+                            </p>
                             <p className="text-slate-900">
                               {lead.serviceInfo.skillsOrExpertiseNeeded}
                             </p>
@@ -543,15 +662,17 @@ const BrowseLeadDetailPage = () => {
                     <Eye className="w-4 h-4 mr-2" />
                     <span className="text-sm">Views</span>
                   </div>
-                  <span className="font-semibold text-slate-900">{lead.views}</span>
+                  <span className="font-semibold text-slate-900">
+                    {lead.views}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center text-slate-600">
-                    <Handshake className="w-4 h-4 mr-2" />
-                    <span className="text-sm">Interactions</span>
+                    <ThumbsUp className="w-4 h-4 mr-2" />
+                    <span className="text-sm">Upvotes</span>
                   </div>
                   <span className="font-semibold text-slate-900">
-                    {lead.interactions ? lead.interactions.length : 0}
+                    {lead.upvotes || 0}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
@@ -596,18 +717,24 @@ const BrowseLeadDetailPage = () => {
                 </div>
                 <div>
                   <p className="text-sm text-slate-500">City</p>
-                  <p className="font-medium text-slate-900">{lead.location.city}</p>
+                  <p className="font-medium text-slate-900">
+                    {lead.location.city}
+                  </p>
                 </div>
                 {lead.location.zipCode && (
                   <div>
                     <p className="text-sm text-slate-500">ZIP Code</p>
-                    <p className="font-medium text-slate-900">{lead.location.zipCode}</p>
+                    <p className="font-medium text-slate-900">
+                      {lead.location.zipCode}
+                    </p>
                   </div>
                 )}
                 {lead.location.address && (
                   <div>
                     <p className="text-sm text-slate-500">Address</p>
-                    <p className="font-medium text-slate-900">{lead.location.address}</p>
+                    <p className="font-medium text-slate-900">
+                      {lead.location.address}
+                    </p>
                   </div>
                 )}
               </div>
@@ -623,11 +750,15 @@ const BrowseLeadDetailPage = () => {
                 <div className="space-y-3">
                   <div>
                     <p className="text-sm text-slate-500">Expiry Date</p>
-                    <p className="font-medium text-slate-900">{formatDate(lead.expiryDate)}</p>
+                    <p className="font-medium text-slate-900">
+                      {formatDate(lead.expiryDate)}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-slate-500">Last Updated</p>
-                    <p className="font-medium text-slate-900">{formatDate(lead.updatedAt)}</p>
+                    <p className="font-medium text-slate-900">
+                      {formatDate(lead.updatedAt)}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -639,10 +770,28 @@ const BrowseLeadDetailPage = () => {
               <p className="text-sm text-slate-600 mb-4">
                 Get in touch with the seller to discuss this opportunity.
               </p>
-              <Button onClick={handleContact} className="w-full bg-blue-600 hover:bg-blue-700">
-                <MessageCircle className="w-4 h-4 mr-2" />
-                Contact Now
-              </Button>
+              <div className="flex gap-3">
+                <Button
+                  onClick={handleSaveToggle}
+                  disabled={saveLoading}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  {isSaved ? (
+                    <BookmarkCheck className="w-4 h-4" />
+                  ) : (
+                    <Bookmark className="w-4 h-4" />
+                  )}
+                  {saveLoading ? "Saving..." : isSaved ? "Saved" : "Save"}
+                </Button>
+                <Button
+                  onClick={handleContact}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700"
+                >
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  Contact Now
+                </Button>
+              </div>
             </div>
           </div>
         </div>

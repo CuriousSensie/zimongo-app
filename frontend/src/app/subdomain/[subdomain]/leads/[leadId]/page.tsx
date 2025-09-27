@@ -21,6 +21,7 @@ import {
   User,
   Building,
   Handshake,
+  ThumbsUp,
 } from "lucide-react";
 import { locationService } from "@/utils/country-state-city";
 import ImageCarousel from "@/components/common/ImageCarousel";
@@ -220,12 +221,20 @@ const LeadDetailPage = () => {
             <p className="text-sm text-slate-600">Views</p>
           </div>
 
-          <div className="bg-white rounded-lg border p-4 text-center">
+          {/* <div className="bg-white rounded-lg border p-4 text-center">
             <Handshake className="w-6 h-6 text-green-600 mx-auto mb-2" />
             <p className="text-2xl font-bold text-slate-900">
-              {lead.interactions ? lead.interactions?.length : 0}
+              0
             </p>
             <p className="text-sm text-slate-600">Interactions</p>
+          </div> */}
+
+          <div className="bg-white rounded-lg border p-4 text-center">
+            <ThumbsUp className="w-6 h-6 text-green-600 mx-auto mb-2" />
+            <p className="text-2xl font-bold text-slate-900">
+              {lead.upvotes || 0}
+            </p>
+            <p className="text-sm text-slate-600">Upvotes</p>
           </div>
 
           <div className="bg-white rounded-lg border p-4 text-center">

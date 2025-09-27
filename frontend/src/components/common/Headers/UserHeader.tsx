@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
-import UserDropdown from "../HeaderDropdown/UserDropdown";
-import FullTextLogo from "../Logos/FullTextLogo";
+import UserDropdown from "../../HeaderDropdown/UserDropdown";
+import FullTextLogo from "../../Logos/FullTextLogo";
 import Link from "next/link";
 
 const UserHeader = ({
@@ -55,7 +55,7 @@ const UserHeader = ({
             </span>
           </button>
           {/* Logo comes from sidebar in large screens */}
-          <Link href="/dashboard" className="lg:hidden">
+          <Link href="/" className="lg:hidden">
             <FullTextLogo />
           </Link>
         </div>
