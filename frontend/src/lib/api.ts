@@ -108,6 +108,11 @@ export class API {
     return this.instance.get(`/profile/slug/${slug}`);
   }
 
+  // USER ANALYTICS
+  getUserDashboardAnalytics() {
+    return this.instance.get(`/analytics/dashboard`);
+  }
+
   // FILE APIS
   uploadFiles(formData: FormData) {
     return this.instance.post(`/file/upload`, formData, {

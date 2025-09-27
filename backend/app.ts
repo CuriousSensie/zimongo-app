@@ -16,6 +16,7 @@ import profileRouter from "./src/routes/profile";
 import fileRouter from "./src/routes/file";
 import leadRouter from "./src/routes/lead";
 import interactionRouter from "./src/routes/interaction";
+import analyticsRouter from "./src/routes/analytics";
 
 dotenv.config();
 
@@ -102,6 +103,7 @@ app.use("/api/user", userRouter);
 app.use("/api/profile", profileRouter);
 app.use("/api/lead", leadRouter);
 app.use("/api/interaction", interactionRouter);
+app.use("/api/analytics", analyticsRouter);
 app.use("/api/file", fileRouter);
 
 // Error handling middleware

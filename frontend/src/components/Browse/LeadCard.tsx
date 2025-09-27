@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import { Bookmark, BookmarkCheck, ThumbsUp } from "lucide-react";
 import useUser from "@/hooks/useUser";
 import { useRouter } from "next/navigation";
+import { cleanText } from "@/utility/text";
 
 interface LeadCardProps {
   lead: ILead;
@@ -330,25 +331,6 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, viewMode }) => {
   };
 
   const typeInfo = getLeadTypeInfo();
-
-  // helper functions
-  function capitalizeFirstLetter(str: string) {
-    if (str.length === 0) {
-      return "";
-    }
-    return str.charAt(0).toUpperCase() + str.slice(1);
-  }
-
-  function capitalizeEachWord(sentence: string) {
-    return sentence
-      .split(" ")
-      .map((word) => capitalizeFirstLetter(word)) // Using the function from above
-      .join(" ");
-  }
-
-  function cleanText(text: string) {
-    return capitalizeEachWord(text.replace("_", " "));
-  }
 
   // Service cards are shown in list view
   if (lead.leadType === LeadType.SERVICE) {

@@ -59,6 +59,7 @@ export const getUserSidebarItems = (profileId: string) => [
     icon: FaGavel,
     separator: true,
     isTitle: false,
+    isDisabled: true,
   },
   {
     label: "Account",
@@ -73,6 +74,7 @@ export const getUserSidebarItems = (profileId: string) => [
     icon: FaBell,
     separator: false,
     isTitle: false,
+    isDisabled: true,
   },
   {
     label: "Profile",
