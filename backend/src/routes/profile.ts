@@ -198,17 +198,18 @@ profileRouter.get(
           .json({ msg: "Invalid attempt to get a profile." });
       }
 
-      // const profile = await Profile.findOne({ slug, status: "active" });
-      const profile = await Profile.findOne({ slug }).populate("userId") as any as IProfileWithUser;
+      const userOfProfile = await User.findOne({ profileSlug: slug });
+
+      if (userOfProfile?.isDeactivated) {
+        logger.error(`Profile not found for slug: ${slug}`);
+        return res.status(403).json({ msg: "This profile has been deactivated." });
+      }
+
+      const profile = await Profile.findOne({ slug });
 
       if (!profile) {
         logger.error(`Profile not found for slug: ${slug}`);
         return res.status(404).json({ msg: "Profile not found." });
-      } 
-
-      if (profile.userId?.isDeactivated) {
-        logger.error(`Profile not found for slug: ${slug}`);
-        return res.status(403).json({ msg: "This profile has been deactivated." });
       }
 
       res.status(200).json({ msg: "Profile found.", data: profile });

@@ -103,7 +103,7 @@ const UserCard: React.FC<UserCardProps> = ({ user, onStatusChange }) => {
     }
     if (user.reportedCount >= 1) {
       return (
-        <Badge variant="destructive" className="flex items-center gap-1">
+        <Badge variant="outline" className="flex items-center gap-1 text-red-600 border-red-600 hover:bg-red-50">
           <XCircle className="h-3 w-3" />
           Reported ({user.reportedCount})
         </Badge>
@@ -158,7 +158,7 @@ const UserCard: React.FC<UserCardProps> = ({ user, onStatusChange }) => {
                 {user.email}
               </p>
               {!user.isEmailVerified && (
-                <Badge variant="destructive" className="mt-1">
+                <Badge variant="outline" className="mt-1 text-red-600 border-red-600 hover:bg-red-50">
                   Email Not Verified
                 </Badge>
               )}
@@ -214,14 +214,6 @@ const UserCard: React.FC<UserCardProps> = ({ user, onStatusChange }) => {
                   </div>
                 )}
                 <Badge variant="outline">{user.profile.businessCategory}</Badge>
-                {user.reportedCount > 0 && (
-                  <div className="mt-2">
-                    <Badge variant="destructive">
-                      {user.reportedCount} Report
-                      {user.reportedCount !== 1 ? "s" : ""}
-                    </Badge>
-                  </div>
-                )}
               </div>
             </div>
           </div>
@@ -271,8 +263,8 @@ const UserCard: React.FC<UserCardProps> = ({ user, onStatusChange }) => {
                 onClick={() => handleStatusChange("deactivate")}
                 disabled={isLoading}
                 size="sm"
-                className="flex items-center gap-2"
-                variant="destructive"
+                className="flex items-center gap-2 text-red-600 border-red-600 hover:bg-red-50"
+                variant="outline"
               >
                 <ShieldOff className="h-4 w-4" />
                 Deactivate

@@ -79,6 +79,10 @@ export class API {
     return this.instance.get("/user/location");
   }
 
+  reportUser(userId: string, reason?: string) {
+    return this.instance.post(`/report/user/${userId}`, { reason });
+  }
+
   // PROFILE APIS
   createProfile(formData: FormData) {
     return this.instance.post("/profile", formData, {
@@ -254,10 +258,6 @@ export class API {
 
   toggleActivationDeactivationOfUser(userId: string) {
     return this.instance.patch(`/user/admin/${userId}/toggleActivation`);
-  }
-
-  reportUser(userId: string, reason?: string) {
-    return this.instance.post(`/user/report/${userId}`, { reason });
   }
 
 }
