@@ -43,7 +43,7 @@ const ProfilePage = () => {
         setRecentLeads(leadsResponse.data.data || []);
       } catch (err: any) {
         console.error("Error fetching profile:", err);
-        setError(err.response?.data?.message || "Failed to load profile");
+        setError(err.response?.data?.msg || "Failed to load profile");
       } finally {
         setLoading(false);
       }

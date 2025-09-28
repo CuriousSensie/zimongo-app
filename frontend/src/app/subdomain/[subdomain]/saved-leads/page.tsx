@@ -1,4 +1,4 @@
-import UserLayout from '@/components/layouts/UserLayout'
+import UserLayout from '@/components/layouts/DashboardLayout'
 import SavedLeadsComp from '@/components/Lead/SavedLeads'
 import React from 'react'
 

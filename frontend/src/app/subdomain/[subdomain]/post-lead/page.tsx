@@ -1,4 +1,4 @@
-import UserLayout from '@/components/layouts/UserLayout';
+import UserLayout from '@/components/layouts/DashboardLayout';
 import LeadWizard from '@/components/Lead/LeadWizard';
 import React from 'react';
 

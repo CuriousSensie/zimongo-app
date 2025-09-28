@@ -1,4 +1,4 @@
-import UserLayout from '@/components/layouts/UserLayout'
+import UserLayout from '@/components/layouts/DashboardLayout'
 import InteractionsComp from '@/components/Profile/InteractionsComp'
 import React from 'react'
 

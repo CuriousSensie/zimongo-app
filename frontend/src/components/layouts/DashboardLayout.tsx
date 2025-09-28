@@ -4,6 +4,7 @@ import useUser from "@/hooks/useUser";
 import { useRouter } from "next/navigation";
 import UserSidebar from "../dynamicSidebars/UserSidebar";
 import UserHeader from "../common/Headers/UserHeader";
+import { toast } from "sonner";
 
 export default function UserLayout({
   children,
@@ -14,12 +15,33 @@ export default function UserLayout({
   const { me, isLoading } = useUser();
   const router = useRouter();
 
+  // Handle authentication and deactivated accounts
+  if (!isLoading && !me) {
+    router.push("/signin");
+    return null;
+  } else if (me?.isDeactivated) {
+    toast.error("Your account has been deactivated. Please contact support.", {
+      duration: 8000,
+      position: "top-center",
+      richColors: true,
+      action: {
+        label: "Close",
+        onClick: () => toast.dismiss(),
+      },
+    });
+    router.push("/signin");
+    return null;
+  }
+
   return (
     <>
       {/* <!-- ===== Page Wrapper Start ===== --> */}
       <div className="flex h-screen bg-zimongo-bg">
         {/* <!-- ===== Sidebar Start ===== --> */}
-        <UserSidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+        <UserSidebar
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+        />
         {/* <!-- ===== Sidebar End ===== --> */}
 
         {/* <!-- ===== Content Area Start ===== --> */}

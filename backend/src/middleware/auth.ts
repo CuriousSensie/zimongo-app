@@ -69,9 +69,6 @@ class Authentication {
       context.user = user;
       req.context = context;
 
-      if (req.context?.user?.isBlocked) {
-        res.status(401).json({ message: "user is blocked" });
-      }
       if (user.isDeactivated) {
         return res
           .status(403)

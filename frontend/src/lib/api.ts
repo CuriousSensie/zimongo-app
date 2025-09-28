@@ -247,6 +247,19 @@ export class API {
     return this.instance.post(`/interaction/create`, { leadId, type: "upvote", content: "This lead got a new upvote." });
   }
 
+  // ADMIN APIS
+  getUsersForAdmin(queryParams: string) {
+    return this.instance.get(`/user/admin/users?${queryParams}`);
+  }
+
+  toggleActivationDeactivationOfUser(userId: string) {
+    return this.instance.patch(`/user/admin/${userId}/toggleActivation`);
+  }
+
+  reportUser(userId: string, reason?: string) {
+    return this.instance.post(`/user/report/${userId}`, { reason });
+  }
+
 }
 
 const Api = new API();

@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import { socket } from "../config/server";
 import LocationProvider from "../lib/location";
 import { generateOtp } from "../lib/otp";
+import { IUser } from "./User";
 
 interface Socials {
   facebook?: string;
@@ -17,6 +18,43 @@ interface Socials {
 // Interface for Profile document with TypeScript
 export interface IProfile extends Document {
   userId: Types.ObjectId;
+  role: string;
+  companyName: string;
+  legalStatus: string;
+  businessCategory: string;
+  businessSubcategory: string;
+  yearOfEstablishment: string;
+  companySize: string;
+  address1: string;
+  address2?: string;
+  country: string;
+  state: string;
+  city: string;
+  zip: string;
+  mobile: string;
+  landline?: string;
+  website: string;
+  companyDescription: string;
+  logoFile?: {
+    type: string;
+    path: string;
+    originalName: string;
+  };
+  businessModel: string;
+  certifications?: string;
+  socials?: Socials;
+  createdAt: Date;
+  updatedAt: Date;
+  knownIps: string[];
+  knownLocations: string[];
+  status: string;
+  completeness?: number;
+  slug: string;
+  email: string;
+}
+
+export interface IProfileWithUser {
+  userId: IUser;
   role: string;
   companyName: string;
   legalStatus: string;

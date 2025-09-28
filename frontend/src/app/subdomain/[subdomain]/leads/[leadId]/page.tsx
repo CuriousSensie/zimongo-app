@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, use } from "react";
 import { useParams, useRouter } from "next/navigation";
-import UserLayout from "@/components/layouts/UserLayout";
+import UserLayout from "@/components/layouts/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Api from "@/lib/api";
