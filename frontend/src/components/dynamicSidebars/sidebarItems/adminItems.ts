@@ -1,4 +1,4 @@
-import { Paperclip } from "lucide-react";
+import { Paperclip, Users } from "lucide-react";
 import {
   FaBuilding,
   FaStore,
@@ -23,7 +23,7 @@ export const AdminSidebarItems = [
   {
     label: "User Management",
     href: "/users",
-    icon: FaBuilding,
+    icon: Users,
     separator: false,
     isTitle: false,
   },
@@ -36,7 +36,7 @@ export const AdminSidebarItems = [
   },
   {
     label: "Spams and Reportings",
-    href: "/spams",
+    href: "/reports",
     icon: Paperclip,
     separator: false,
     isTitle: false,

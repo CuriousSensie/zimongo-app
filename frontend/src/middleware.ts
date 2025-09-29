@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { extractSubdomain, isSubdomain } from "./utils/subdomain";
 
@@ -45,8 +45,8 @@ function createSubdomainRewriteUrl(
   return new URL(`/subdomain/${subdomain}${url.pathname}`, req.url);
 }
 
-function createAdminRewriteUrl(subdomain: string, url: URL, req: NextRequest) {
-  return new URL(`/admin/${url.pathname}`, req.url);
+function createAdminRewriteUrl(url: URL, req: NextRequest) {
+  return new URL(`/admin/${url.pathname.startsWith("/") ? url.pathname.slice(1) : url.pathname}`, req.url);
 }
 
 function createLoginUrl(req: NextRequest) {
@@ -63,7 +63,6 @@ async function handleSubdomainRouting(
     req,
     secret: process.env.NEXTAUTH_SECRET,
   });
-
 
   if (isWhitelistedPath(url.pathname)) {
     return NextResponse.rewrite(new URL(url.pathname, req.url));
@@ -92,16 +91,15 @@ async function handleAdminRouting(
     secret: process.env.NEXTAUTH_SECRET,
   });
 
-
   if (isWhitelistedPath(url.pathname)) {
     return NextResponse.rewrite(new URL(url.pathname, req.url));
   }
 
   if (token) {
     if (isCommonPage(url.pathname)) {
-      return NextResponse.rewrite(createAdminRewriteUrl(subdomain, url, req));
+      return NextResponse.rewrite(createAdminRewriteUrl(url, req));
     }
-    return NextResponse.rewrite(createAdminRewriteUrl(subdomain, url, req));
+    return NextResponse.rewrite(createAdminRewriteUrl(url, req));
   }
 
   return NextResponse.rewrite(createLoginUrl(req));
@@ -121,7 +119,7 @@ export default async function middleware(req: NextRequest) {
   if (
     subdomain === null &&
     hostname !== "localhost:3000" &&
-    hostname !== "yourdomain.com"
+    hostname !== "zimongo.com"
   ) {
     return NextResponse.redirect(DEFAULT_REDIRECT_URL);
   }

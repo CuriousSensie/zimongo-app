@@ -1,4 +1,4 @@
-import UserLayout from '@/components/layouts/UserLayout'
+import UserLayout from '@/components/layouts/DashboardLayout'
 import SettingsPageComp from '@/components/Profile/UserSettings'
 import React from 'react'
 

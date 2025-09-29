@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import express, { Response } from "express";
 import User from "../models/User";
+import Report, { ReportType } from "../models/Report";
 import TokenManagement from "../lib/Token";
 import { TOKEN_TYPE } from "../constant/tokenType";
 import logger from "../config/logger";
@@ -59,7 +60,7 @@ userRouter.post(
           password,
           name,
           isAdmin: false,
-          isBlocked: false,
+          reportedCount: 0,
           isRegistrationCompleted: false,
         },
         {
@@ -99,62 +100,6 @@ userRouter.post(
     } catch (error) {
       logger.error((error as Error).message);
       return res.status(500).json({ message: (error as Error).message });
-    }
-  }
-);
-
-userRouter.patch(
-  "/:userId/deactivate",
-  Authentication.Admin,
-  async (req: CustomRequest, res) => {
-    try {
-      const { user: admin } = req.context!;
-      const userId = req.params.userId;
-      const { reason } = req.body;
-      let errorMessage = "";
-      let emailStatus = "failed";
-      const user = await User.findById(userId);
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: "Invalid userId",
-        });
-      }
-
-      user.isDeactivated = !user.isDeactivated;
-      await user.save();
-      const link = "http://localhost:3000/signin"; // TODO: make dynamic
-      try {
-        sendGridGuide.sendUserDeactivationEmail(
-          user,
-          user.isDeactivated,
-          link,
-          reason
-        );
-        emailStatus = "sent";
-      } catch (emailError) {
-        errorMessage = (emailError as Error).message;
-        logger.error(`Failed to send deactivation email: ${errorMessage}`);
-      }
-
-      return res.status(200).json({
-        success: true,
-        message: `User ${
-          user.isDeactivated ? "deactivated" : "activated"
-        } successfully`,
-        data: {
-          _id: user._id,
-          email: user.email,
-          name: user.name,
-          isDeactivated: user.isDeactivated,
-        },
-      });
-    } catch (error) {
-      logger.error((error as Error).message);
-      return res.status(500).json({
-        error: (error as Error).message,
-        message: "Error while deactivating user",
-      });
     }
   }
 );
@@ -247,6 +192,7 @@ userRouter.post(
             isEmailVerified: user.isEmailVerified,
             profileSlug: user.profileSlug,
             picture: user.picture,
+            isDeactivated: user.isDeactivated,
           },
         });
       }
@@ -261,6 +207,7 @@ userRouter.post(
           isAdmin: user.isAdmin,
           isEmailVerified: user.isEmailVerified,
           profileSlug: user.profileSlug,
+          isDeactivated: user.isDeactivated,
           picture: user.picture,
         },
       });
@@ -535,6 +482,204 @@ userRouter.get(
     } catch (error) {
       logger.error((error as Error).message);
       return res.status(500).json({ message: (error as Error).message });
+    }
+  }
+);
+
+// Admin endpoints for user management
+// get all users
+userRouter.get(
+  "/admin/users",
+  Authentication.Admin,
+  async (req: CustomRequest, res) => {
+    try {
+      const { user: currentUser } = req.context!;
+
+      // Check if user is admin
+      if (!currentUser.isAdmin) {
+        return res.status(403).json({ message: "Access denied. Admin only." });
+      }
+
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const search = (req.query.search as string) || "";
+      const role = (req.query.role as string) || "";
+      const businessCategory = (req.query.businessCategory as string) || "";
+      const country = (req.query.country as string) || "";
+      const status = (req.query.status as string) || "";
+
+      const skip = (page - 1) * limit;
+
+      // Build search criteria
+      let userFilter: any = {};
+      let profileFilter: any = {};
+
+      if (search) {
+        userFilter.$or = [
+          { name: { $regex: search, $options: "i" } },
+          { email: { $regex: search, $options: "i" } },
+        ];
+      }
+
+      if (status && status !== "all") {
+        if (status === "active") {
+          userFilter.isDeactivated = false;
+          userFilter.reportedCount = { $lt: 1 };
+        } else if (status === "deactivated") {
+          userFilter.isDeactivated = true;
+        } else if (status === "reported") {
+          userFilter.reportedCount = { $gte: 1 };
+        }
+      }
+
+      // Profile filters
+      if (role && role !== "all") {
+        profileFilter.role = { $regex: role, $options: "i" };
+      }
+      if (businessCategory) {
+        profileFilter.businessCategory = {
+          $regex: businessCategory,
+          $options: "i",
+        };
+      }
+      if (country && country !== "all") {
+        profileFilter.country = { $regex: country, $options: "i" };
+      }
+      if (search) {
+        profileFilter.$or = [
+          { companyName: { $regex: search, $options: "i" } },
+          { email: { $regex: search, $options: "i" } },
+          ...(profileFilter.$or || []),
+        ];
+      }
+
+      // First get profiles that match criteria
+      const Profile = require("../models/Profile").default;
+      const matchingProfiles = await Profile.find(profileFilter).select(
+        "userId"
+      );
+      const profileUserIds = matchingProfiles.map(
+        (p: { userId: any }) => p.userId
+      );
+
+      // Combine user filter with profile user IDs if profile filters exist
+      if (Object.keys(profileFilter).length > 0) {
+        userFilter._id = { $in: profileUserIds };
+      }
+
+      // Get users with pagination
+      const users = await User.find(userFilter)
+        .select("-password -resetToken -emailVerifyToken -otp -otpExpiry")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean();
+
+      // Get profiles for these users
+      const userIds = users.map((u) => u._id);
+      const profiles = await Profile.find({ userId: { $in: userIds } }).lean();
+
+      // Combine users with their profiles
+      const usersWithProfiles = users.map((user) => {
+        const profile = profiles.find(
+          (p: { userId: any }) => p.userId.toString() === user._id.toString()
+        );
+        return {
+          ...user,
+          profile: profile || null,
+        };
+      });
+
+      // Get total count for pagination
+      const totalForThisPage = await User.countDocuments(userFilter);
+
+      // get total counts for cards
+      const totalUsers = await User.countDocuments();
+      const totalActiveUsers = await User.countDocuments({
+        isDeactivated: false,
+      });
+      const totalDeactivatedUsers = totalUsers - totalActiveUsers;
+      const totalReportedUsers = await User.countDocuments({
+        reportedCount: { $gte: 1 },
+      });
+
+      return res.status(200).json({
+        users: usersWithProfiles,
+        pagination: {
+          currentPage: page,
+          totalPages: Math.ceil(totalForThisPage / limit),
+          totalForThisPage,
+          limit,
+        },
+        totalCounts: {
+          total: totalUsers,
+          active: totalActiveUsers,
+          deactivated: totalDeactivatedUsers,
+          reported: totalReportedUsers,
+        },
+      });
+    } catch (error) {
+      logger.error((error as Error).message);
+      return res.status(500).json({ message: (error as Error).message });
+    }
+  }
+);
+
+// toggle activation deactivation of user
+userRouter.patch(
+  "/admin/:userId/toggleActivation",
+  Authentication.Admin,
+  async (req: CustomRequest, res) => {
+    try {
+      const { user: admin } = req.context!;
+      const userId = req.params.userId;
+      const { reason } = req.body;
+      let errorMessage = "";
+      let emailStatus = "failed";
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "Invalid userId",
+        });
+      }
+
+      user.isDeactivated = !user.isDeactivated;
+      await user.save();
+
+      const link = `https://zimongo.com/activate`;
+
+      try {
+        sendGridGuide.sendUserDeactivationEmail(
+          user,
+          user.isDeactivated,
+          link,
+          reason
+        );
+        emailStatus = "sent";
+      } catch (emailError) {
+        errorMessage = (emailError as Error).message;
+        logger.error(`Failed to send deactivation email: ${errorMessage}`);
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: `User ${
+          user.isDeactivated ? "deactivated" : "activated"
+        } successfully`,
+        data: {
+          _id: user._id,
+          email: user.email,
+          name: user.name,
+          isDeactivated: user.isDeactivated,
+        },
+      });
+    } catch (error) {
+      logger.error((error as Error).message);
+      return res.status(500).json({
+        error: (error as Error).message,
+        message: "Error while deactivating user",
+      });
     }
   }
 );

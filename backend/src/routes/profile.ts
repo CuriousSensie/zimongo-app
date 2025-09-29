@@ -1,7 +1,7 @@
 import express, { Response } from "express";
 import { CustomRequest } from "../types/request";
 import Authentication from "../middleware/auth";
-import Profile from "../models/Profile";
+import Profile, { IProfileWithUser } from "../models/Profile";
 import { profile } from "console";
 import logger from "../config/logger";
 import User from "../models/User";
@@ -183,7 +183,7 @@ profileRouter.get(
   }
 );
 
-// get profile using slug
+// get profile using slug (for public view)
 profileRouter.get(
   "/slug/:slug",
   Authentication.User,
@@ -198,7 +198,13 @@ profileRouter.get(
           .json({ msg: "Invalid attempt to get a profile." });
       }
 
-      // const profile = await Profile.findOne({ slug, status: "active" });
+      const userOfProfile = await User.findOne({ profileSlug: slug });
+
+      if (userOfProfile?.isDeactivated) {
+        logger.error(`Profile not found for slug: ${slug}`);
+        return res.status(403).json({ msg: "This profile has been deactivated." });
+      }
+
       const profile = await Profile.findOne({ slug });
 
       if (!profile) {

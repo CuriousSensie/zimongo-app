@@ -1,4 +1,4 @@
-import UserLayout from "@/components/layouts/UserLayout";
+import UserLayout from "@/components/layouts/DashboardLayout";
 import UserProfile from "@/components/Profile/UserProfile";
 import React from "react";
 

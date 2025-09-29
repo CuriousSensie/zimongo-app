@@ -46,7 +46,7 @@ const SiteHeader = ({ className }: { className?: string }) => {
               </SelectTrigger>
               <SelectContent>
                 {cities.map((city) => (
-                  <SelectItem key={city.code} value={city.code}>
+                  <SelectItem key={city.code + city.name} value={city.code}>
                     {city.name}
                   </SelectItem>
                 ))}

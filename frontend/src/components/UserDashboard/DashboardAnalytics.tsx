@@ -84,8 +84,6 @@ const DashboardAnalytics: React.FC = () => {
     }
   };
 
-  console.log('Fetched Analytics:', analytics);
-
   const formatInteractionTimeline = (timeline: AnalyticsData['interactionAnalytics']['timeline']) => {
     const groupedByDate = timeline.reduce((acc, item) => {
       const date = item._id.date;

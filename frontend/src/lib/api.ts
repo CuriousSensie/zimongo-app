@@ -79,6 +79,10 @@ export class API {
     return this.instance.get("/user/location");
   }
 
+  reportUser(userId: string, reason?: string) {
+    return this.instance.post(`/report/user/${userId}`, { reason });
+  }
+
   // PROFILE APIS
   createProfile(formData: FormData) {
     return this.instance.post("/profile", formData, {
@@ -178,15 +182,15 @@ export class API {
   deleteLead(id: string) {
     return this.instance.delete(`/lead/${id}`);
   }
-
+  
   updateLeadStatus(id: string, status: string) {
     return this.instance.patch(`/lead/${id}/status`, { status });
   }
-
+  
   extendLeadExpiry(id: string) {
     return this.instance.patch(`/lead/${id}/extend-expiry`);
   }
-
+  
 
   sendLeadVerificationOTP(leadId: string) {
     return this.instance.post(`/lead/${leadId}/verify`);
@@ -202,7 +206,7 @@ export class API {
   }) {
     return this.instance.get(`/lead/profile/${profileId}`, { params });
   }
-
+  
   saveLead(leadId: string) {
     return this.instance.post(`/lead/save/${leadId}`);
   }
@@ -222,7 +226,7 @@ export class API {
   trackInteraction(leadId: string, type: string, content?: string) {
     return this.instance.post(`/interaction/create`, { leadId, type, content });
   }
-
+  
   getUserInteractions(params: { page?: number; limit?: number }) {
     return this.instance.get("/interaction/my", { params });
   }
@@ -230,21 +234,60 @@ export class API {
   getLeadInteractions(leadId: string, params: { page?: number; limit?: number; type?: string }) {
     return this.instance.get(`/interaction/lead/${leadId}`, { params });
   }
-
+  
   getInteractionStats(leadId: string) {
     return this.instance.get(`/interaction/stats/${leadId}`);
   }
-
+  
   checkUpvoteStatus(leadId: string) {
     return this.instance.get(`/interaction/check-upvote/${leadId}`);
   }
-
+  
   removeUpvote(leadId: string) {
     return this.instance.delete(`/interaction/upvote/${leadId}`);
   }
-
+  
   addUpvote(leadId: string) {
     return this.instance.post(`/interaction/create`, { leadId, type: "upvote", content: "This lead got a new upvote." });
+  }
+
+  reportLead(leadId: string, reason?: string) {
+    return this.instance.post(`/lead/report/${leadId}`, { reason });
+  }
+
+  // ADMIN APIS
+  getUsersForAdmin(queryParams: string) {
+    return this.instance.get(`/user/admin/users?${queryParams}`);
+  }
+  
+  toggleActivationDeactivationOfUser(userId: string) {
+    return this.instance.patch(`/user/admin/${userId}/toggleActivation`);
+  }
+
+  // LEAD ADMIN APIS
+  getLeadsForAdmin(queryParams: string) {
+    return this.instance.get(`/lead/admin/leads?${queryParams}`);
+  }
+
+  requestLeadVerification(leadId: string, reason?: string) {
+    return this.instance.patch(`/lead/admin/${leadId}/request-verification`, { reason });
+  }
+
+  toggleLeadBlock(leadId: string, reason?: string) {
+    return this.instance.patch(`/lead/admin/${leadId}/toggle-block`, { reason });
+  }
+
+
+  getReportsForAdmin(queryParams: string) {
+    return this.instance.get(`/report/admin/reports?${queryParams}`);
+  }
+
+  getReportStats() {
+    return this.instance.get(`/report/admin/reports/stats`);
+  }
+
+  deleteReport(reportId: string) {
+    return this.instance.delete(`/report/admin/reports/${reportId}`);
   }
 
 }

@@ -1,5 +1,5 @@
-import UserLayout from '@/components/layouts/UserLayout'
-import DashboardAnalytics from '@/components/Dashboard/DashboardAnalytics'
+import UserLayout from '@/components/layouts/DashboardLayout'
+import DashboardAnalytics from '@/components/UserDashboard/DashboardAnalytics'
 import React from 'react'
 
 const UserDashboard = () => {

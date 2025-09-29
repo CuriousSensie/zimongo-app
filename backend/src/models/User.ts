@@ -17,7 +17,7 @@ export interface IUser extends Document {
     originalName: string;
   };
   isAdmin: boolean;
-  isBlocked: boolean;
+  reportedCount: number;
   online: boolean;
   isEmailVerified: boolean;
   isDeactivated: boolean;
@@ -49,7 +49,7 @@ const userSchema = new Schema<IUser>(
       originalName: { type: String },
     },
     isAdmin: { type: Boolean, default: false },
-    isBlocked: { type: Boolean, default: false },
+    reportedCount: { type: Number, default: 0 },
     isEmailVerified: { type: Boolean, default: false },
     isDeactivated: { type: Boolean, default: false },
     isRegistrationCompleted: { type: Boolean, default: false },

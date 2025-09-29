@@ -18,6 +18,7 @@ import Permission from "../models/Permission";
 import { generateOtp } from "../lib/otp";
 import { sendGridGuide } from "../lib/email/SendGridGuide";
 import SavedLead from "../models/SavedLead";
+import Report, { ReportType } from "../models/Report";
 
 const leadRouter = express.Router();
 
@@ -1253,5 +1254,268 @@ leadRouter.post(
   }
 );
 
+// ADMIN ACTIONS
+// get all leads for admin
+leadRouter.get(
+  "/admin/leads",
+  Authentication.Admin,
+  async (req: CustomRequest, res: Response) => {
+    try {
+      const { user: currentUser } = req.context!;
+
+      // Check if user is admin
+      if (!currentUser.isAdmin) {
+        return res.status(403).json({ message: "Access denied. Admin only." });
+      }
+
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const search = (req.query.search as string) || "";
+      const leadIntent = (req.query.leadIntent as string) || "";
+      const leadType = (req.query.leadType as string) || "";
+      const status = (req.query.status as string) || "";
+      const country = (req.query.country as string) || "";
+      const isVerified = req.query.isVerified as string;
+      const priority = (req.query.priority as string) || "";
+
+      const skip = (page - 1) * limit;
+
+      // Build search criteria
+      let filter: any = {};
+
+      if (search) {
+        filter.$or = [
+          { title: { $regex: search, $options: "i" } },
+          { description: { $regex: search, $options: "i" } },
+          { "productInfo.productName": { $regex: search, $options: "i" } },
+          { "serviceInfo.serviceName": { $regex: search, $options: "i" } },
+        ];
+      }
+
+      if (leadIntent && leadIntent !== "all") {
+        filter.leadIntent = leadIntent;
+      }
+
+      if (leadType && leadType !== "all") {
+        filter.leadType = leadType;
+      }
+
+      if (status && status !== "all") {
+        filter.status = status;
+      }
+
+      if (country && country !== "all") {
+        filter["location.country"] = country;
+      }
+
+      if (isVerified !== undefined && isVerified !== "all") {
+        filter.isVerified = isVerified === "true";
+      }
+
+      if (priority && priority !== "all") {
+        filter.priority = priority;
+      }
+
+      // Get leads with pagination
+      const leads = await Lead.find(filter)
+        .populate("userId", "name email")
+        .populate("profileId", "companyName slug")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean();
+
+      // Get total count for pagination
+      const totalLeads = await Lead.countDocuments(filter);
+
+      return res.status(200).json({
+        leads,
+        pagination: {
+          currentPage: page,
+          totalPages: Math.ceil(totalLeads / limit),
+          totalLeads,
+          limit,
+        },
+      });
+    } catch (error) {
+      logger.error((error as Error).message);
+      return res.status(500).json({ message: (error as Error).message });
+    }
+  }
+);
+
+// request verification for a lead
+leadRouter.patch(
+  "/admin/:leadId/request-verification",
+  Authentication.Admin,
+  async (req: CustomRequest, res: Response) => {
+    try {
+      const { user: admin } = req.context!;
+      const { leadId } = req.params;
+      const { reason } = req.body;
+
+      // Check if user is admin
+      if (!admin.isAdmin) {
+        return res.status(403).json({ message: "Access denied. Admin only." });
+      }
+
+      const lead = await Lead.findById(leadId).populate("userId", "name email");
+      if (!lead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+
+      // Set lead to unverified and create interaction
+      lead.isVerified = false;
+      lead.status = "inactive"; // Lead becomes inactive until reverified
+      await lead.save();
+
+      // Create interaction for the lead owner
+      const interaction = new Interaction({
+        leadId: new Types.ObjectId(leadId),
+        interactorId: new Types.ObjectId(admin.id),
+        type: InteractionType.VIEW_DETAILS, // Using existing type for admin action
+        content: `Admin has requested re-verification for your lead "${lead.title}". ${reason ? "Reason: " + reason : ""}`,
+      });
+      await interaction.save();
+
+      logger.info(`Admin ${admin._id} requested verification for lead ${leadId}`);
+
+      return res.status(200).json({
+        message: "Verification requested successfully",
+        data: {
+          leadId: lead._id,
+          title: lead.title,
+          isVerified: lead.isVerified,
+          status: lead.status,
+        },
+      });
+    } catch (error) {
+      logger.error((error as Error).message);
+      return res.status(500).json({ message: (error as Error).message });
+    }
+  }
+);
+
+// Block/Unblock a lead
+leadRouter.patch(
+  "/admin/:leadId/toggle-block",
+  Authentication.Admin,
+  async (req: CustomRequest, res: Response) => {
+    try {
+      const { user: admin } = req.context!;
+      const { leadId } = req.params;
+      const { reason } = req.body;
+
+      // Check if user is admin
+      if (!admin.isAdmin) {
+        return res.status(403).json({ message: "Access denied. Admin only." });
+      }
+
+      const lead = await Lead.findById(leadId).populate("userId", "name email");
+      if (!lead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+
+      // Toggle lead status between closed and previous status
+      const isCurrentlyBlocked = lead.status === "blocked";
+      const newStatus = isCurrentlyBlocked ? "inactive" : "blocked";
+      const previousStatus = lead.status;
+
+      lead.status = newStatus;
+      await lead.save();
+
+      // Create interaction for the lead owner
+      const actionText = isCurrentlyBlocked ? "unblocked" : "blocked";
+      const interaction = new Interaction({
+        leadId: new Types.ObjectId(leadId),
+        interactorId: new Types.ObjectId(admin.id),
+        type: InteractionType.VIEW_DETAILS, // Using existing type for admin action
+        content: `Admin has ${actionText} your lead "${lead.title}". ${reason ? "Reason: " + reason : ""}`,
+      });
+      await interaction.save();
+
+      logger.info(`Admin ${admin._id} ${actionText} lead ${leadId}`);
+
+      return res.status(200).json({
+        message: `Lead ${actionText} successfully`,
+        data: {
+          leadId: lead._id,
+          title: lead.title,
+          status: lead.status,
+          previousStatus,
+          isBlocked: newStatus === "blocked",
+        },
+      });
+    } catch (error) {
+      logger.error((error as Error).message);
+      return res.status(500).json({ message: (error as Error).message });
+    }
+  }
+);
+
+// Report lead endpoint
+leadRouter.post(
+  "/report/:leadId",
+  Authentication.User,
+  async (req: CustomRequest, res: Response) => {
+    try {
+      const { user: reporter } = req.context!;
+      const { leadId } = req.params;
+      const { reason } = req.body;
+
+      // Check if reported lead exists
+      const reportedLead = await Lead.findById(leadId);
+      if (!reportedLead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+
+      // Prevent self-reporting
+      if (reporter.id.toString() === reportedLead.userId.toString()) {
+        return res.status(400).json({ message: "Cannot report your own lead" });
+      }
+
+      // Check if already reported by this user
+      const existingReport = await Report.findOne({
+        reporterId: reporter._id,
+        reportedLeadId: leadId,
+        type: ReportType.LEAD_REPORTING,
+      });
+
+      if (existingReport) {
+        return res.status(400).json({ 
+          message: "You have already reported this lead" 
+        });
+      }
+
+      // Create new report
+      const report = new Report({
+        reporterId: reporter._id,
+        reportedLeadId: leadId,
+        type: ReportType.LEAD_REPORTING,
+        reason: reason || "",
+      });
+
+      await report.save();
+
+      // Note: We could add a reportedCount field to Lead model in the future
+      // For now, we'll just track reports in the Report collection
+
+      logger.info(`User ${reporter._id} reported lead ${leadId}`);
+
+      return res.status(201).json({
+        message: "Lead reported successfully",
+        report: {
+          _id: report._id,
+          reportedLeadId: report.reportedLeadId,
+          reason: report.reason,
+          createdAt: report.createdAt,
+        },
+      });
+    } catch (error) {
+      logger.error((error as Error).message);
+      return res.status(500).json({ message: (error as Error).message });
+    }
+  }
+);
 
 export default leadRouter;

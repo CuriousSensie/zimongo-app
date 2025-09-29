@@ -159,7 +159,7 @@ export interface ILead {
   };
   
   // Lead status and metadata
-  status: string; // inactive, active, closed, expired
+  status: string; //  inactive (verification required), active, flagged, blocked, closed, expired
   priority: string; // low, medium, high, urgent
   expiryDate?: string;
   
@@ -176,6 +176,15 @@ export interface ILead {
   // Timestamps
   createdAt: string;
   updatedAt: string;
+}
+
+export enum LeadStatus {
+  INACTIVE = "inactive",
+  ACTIVE = "active",
+  FLAGGED = "flagged",
+  BLOCKED = "blocked",
+  CLOSED = "closed",
+  EXPIRED = "expired"
 }
 
 // Form data interface for creating leads

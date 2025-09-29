@@ -382,7 +382,9 @@ const LeadManagement = () => {
                     </h3>
                     <Badge
                       variant="outline"
-                      className={getStatusBadgeColor(isLeadExpired(lead) ? "expired" : lead.status)}
+                      className={getStatusBadgeColor(
+                        isLeadExpired(lead) ? "expired" : lead.status
+                      )}
                     >
                       {isLeadExpired(lead) ? "expired" : lead.status}
                     </Badge>
@@ -391,7 +393,8 @@ const LeadManagement = () => {
                         variant="outline"
                         className="bg-orange-100 text-orange-800 border-orange-200"
                       >
-                        Expiry: {new Date(lead.expiryDate!).toLocaleDateString()}
+                        Expiry:{" "}
+                        {new Date(lead.expiryDate!).toLocaleDateString()}
                       </Badge>
                     )}
                     <Badge
@@ -459,7 +462,8 @@ const LeadManagement = () => {
                   {/* Lead Actions */}
                   {isLeadExpired(lead) ? (
                     <Button
-                      className="px-8 py-2 min-w-[120px] w-full bg-orange-600 hover:bg-orange-700"
+                      variant={"outline"}
+                      className="px-8 py-2 min-w-[120px] w-full bg-orange-100 text-orange-500 hover:bg-orange-200 hover:text-orange-400"
                       onClick={() => handleExtendExpiry(lead._id!)}
                     >
                       Extend Expiry

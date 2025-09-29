@@ -48,6 +48,15 @@ export enum UnitOfMeasurement {
   KILOGRAMS = "kilograms"
 }
 
+export enum LeadStatus {
+  INACTIVE = "inactive",
+  ACTIVE = "active",
+  FLAGGED = "flagged",
+  BLOCKED = "blocked",
+  CLOSED = "closed",
+  EXPIRED = "expired"
+}
+
 // Interface for file uploads
 interface LeadFile {
   type: string;
@@ -135,7 +144,7 @@ export interface ILead extends Document {
   };
   
   // Lead status and metadata
-  status: string; // inactive (verification required), active, flagged, closed, expired
+  status: string; // inactive (verification required), active, flagged, blocked, closed, expired
   priority: string; // low, medium, high, urgent
   expiryDate?: Date;
   
@@ -300,7 +309,7 @@ const LeadSchema = new Schema<ILead>({
   // Lead status and metadata
   status: { 
     type: String, 
-    enum: ["inactive", "active", "closed", "expired"], 
+    enum: ["inactive", "active", "flagged", "blocked", "closed", "expired"], 
     default: "inactive" 
   },
   priority: { 
