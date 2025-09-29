@@ -36,7 +36,7 @@ export const AdminSidebarItems = [
   },
   {
     label: "Spams and Reportings",
-    href: "/spams",
+    href: "/reports",
     icon: Paperclip,
     separator: false,
     isTitle: false,

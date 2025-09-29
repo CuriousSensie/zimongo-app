@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import express, { Response } from "express";
 import User from "../models/User";
-import Report from "../models/Report";
+import Report, { ReportType } from "../models/Report";
 import TokenManagement from "../lib/Token";
 import { TOKEN_TYPE } from "../constant/tokenType";
 import logger from "../config/logger";
@@ -548,6 +548,7 @@ userRouter.get(
       if (search) {
         profileFilter.$or = [
           { companyName: { $regex: search, $options: "i" } },
+          { email: { $regex: search, $options: "i" } },
           ...(profileFilter.$or || []),
         ];
       }

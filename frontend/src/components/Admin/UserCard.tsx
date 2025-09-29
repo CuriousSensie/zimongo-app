@@ -73,7 +73,6 @@ const UserCard: React.FC<UserCardProps> = ({ user, onStatusChange }) => {
       const host = window.location.host;
       const subdomain = host.split(".")[0];
       const cleanedHost = host.replace(`${subdomain}.`, "");
-      console.log(host, subdomain, cleanedHost);
       setHostWithoutSubdomain(cleanedHost);
     }
   }, []);
@@ -84,9 +83,21 @@ const UserCard: React.FC<UserCardProps> = ({ user, onStatusChange }) => {
     setIsLoading(true);
     try {
       await onStatusChange(user._id, action);
-      toast.success(`User ${action}d successfully`);
+      toast.success(`User ${action}d successfully`, {
+        duration: 3000,
+        richColors: true,
+        description: `The user has been ${action}d.`,
+        action: { label: "OK", onClick: () => toast.dismiss() },
+        position: "top-center",
+      });
     } catch (error) {
-      toast.error(`Failed to ${action} user`);
+      toast.error(`Failed to ${action} user`, {
+        description: "Please try again later.",
+        duration: 4000,
+        action: { label: "OK", onClick: () => toast.dismiss() },
+        position: "top-center",
+        richColors: true,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -103,7 +114,10 @@ const UserCard: React.FC<UserCardProps> = ({ user, onStatusChange }) => {
     }
     if (user.reportedCount >= 1) {
       return (
-        <Badge variant="outline" className="flex items-center gap-1 text-red-600 border-red-600 hover:bg-red-50">
+        <Badge
+          variant="outline"
+          className="flex items-center gap-1 text-red-600 border-red-600 hover:bg-red-50"
+        >
           <XCircle className="h-3 w-3" />
           Reported ({user.reportedCount})
         </Badge>
@@ -158,7 +172,10 @@ const UserCard: React.FC<UserCardProps> = ({ user, onStatusChange }) => {
                 {user.email}
               </p>
               {!user.isEmailVerified && (
-                <Badge variant="outline" className="mt-1 text-red-600 border-red-600 hover:bg-red-50">
+                <Badge
+                  variant="outline"
+                  className="mt-1 text-red-600 border-red-600 hover:bg-red-50"
+                >
                   Email Not Verified
                 </Badge>
               )}

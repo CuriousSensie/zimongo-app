@@ -1,4 +1,4 @@
-import UserLayout from '@/components/layouts/DashboardLayout'
+import DashboardLayout from '@/components/layouts/DashboardLayout'
 import DashboardAnalytics from '@/components/UserDashboard/DashboardAnalytics'
 import Link from 'next/link'
 import { Card } from '@/components/ui/card'
@@ -23,14 +23,14 @@ const AdminDashboard = () => {
       color: "text-green-600 bg-green-100"
     },
     {
-      title: "Permissions",
-      description: "Configure user roles and permissions",
+      title: "Reports & Spam",
+      description: "Manage user and lead reports",
       icon: Shield,
-      href: "/permissions",
+      href: "/reports",
       color: "text-purple-600 bg-purple-100"
     },
     {
-      title: "Reports & Analytics",
+      title: "Analytics",
       description: "View system analytics and reports",
       icon: BarChart3,
       href: "/analytics",
@@ -39,7 +39,7 @@ const AdminDashboard = () => {
   ];
 
   return (
-    <UserLayout>
+    <DashboardLayout>
       <div className="p-6 space-y-6">
         {/* Header */}
         <div>
@@ -75,7 +75,7 @@ const AdminDashboard = () => {
           <DashboardAnalytics />
         </div>
       </div>
-    </UserLayout>
+    </DashboardLayout>
   )
 }
 
